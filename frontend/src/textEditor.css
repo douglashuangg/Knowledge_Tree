@@ -16,9 +16,10 @@ body {
 
 .box {
   position: absolute;
-  bottom: 0;
-  right: 50%;
-  transform: translateX(50%);
+  bottom: 50px;
+  left: 50px;
+  /* right: 50%; */
+  /* transform: translateX(50%); */
   cursor: move;
   color: black;
   /* max-width: 215px; */
