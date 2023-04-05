@@ -1,18 +1,19 @@
 import { useRef, useEffect, useState } from "react";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
-import "./textEditor.css";
 import Draggable from "react-draggable";
 import axios from "axios";
+import "react-quill/dist/quill.snow.css";
+import "./textEditor.css";
+import FileBar from "./FileBar";
 
 function TextEditor() {
   const quillRef = useRef(null);
   const canvasRef = useRef(null);
   const [input, setInput] = useState("");
   const [inputList, setInputList] = useState([]);
+  const [pageId, setPageId] = useState();
   const divRefs = useRef([]);
   const boardRef = useRef(null);
-  const results = "hello everybody";
 
   let canvas;
   let context;
@@ -47,11 +48,6 @@ function TextEditor() {
     board.addEventListener("mouseout", onMouseUp, false);
     board.addEventListener("mousemove", onMouseMove, false);
     board.addEventListener("wheel", onMouseWheel, false);
-    // canvas.addEventListener("mousedown", onMouseDown);
-    // canvas.addEventListener("mouseup", onMouseUp, false);
-    // canvas.addEventListener("mouseout", onMouseUp, false);
-    // canvas.addEventListener("mousemove", onMouseMove, false);
-    // canvas.addEventListener("wheel", onMouseWheel, false);
 
     // board.addEventListener("mouseenter", function () {
     //   window.addEventListener("wheel", disableScroll);
@@ -75,16 +71,12 @@ function TextEditor() {
     redrawCanvas();
   });
 
-  const url = "/savePost";
+  const url = "http://localhost:5000/savePost";
 
-  function sendData() {
-    axios
-      .post(url, {
-        title: "Hello World",
-      })
-      .then((response) => {
-        console.log("DONE");
-      });
+  function sendData(data) {
+    axios.post(url, data).then((response) => {
+      console.log("DONE");
+    });
   }
   // useEffect(() => {
   //   const requestOptions = {
@@ -356,15 +348,47 @@ function TextEditor() {
 
   const handleChange = (content, delta, source, editor) => {
     const fullText = editor.getText();
-    const cursorIndex = editor.getSelection().index;
-    let newTextIndex = fullText.lastIndexOf("\n", cursorIndex - 1);
+    // Might have to remove this if it screw up with generating boxes
+    if (editor.getSelection() != null) {
+      const cursorIndex = editor.getSelection().index;
+      let newTextIndex = fullText.lastIndexOf("\n", cursorIndex - 1);
 
-    const textAfter = fullText.substring(newTextIndex + 1, cursorIndex);
-    setInput(textAfter);
+      const textAfter = fullText.substring(newTextIndex + 1, cursorIndex);
+      setInput(textAfter);
+    }
   };
+
+  // Save periodically
+  let old;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      let data = quillRef.current.getEditor().getContents()["ops"][0]["insert"];
+      console.log(`[${Date.now()}] Data:`, data);
+      if (old !== data && pageId) {
+        console.log("sent");
+        sendData({
+          doc: data,
+          id: pageId,
+        });
+        old = data;
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  function saveCanvas() {
+    // get x and y values
+    // get length and width
+    // get color
+    /* save overall location of the canvas, imagining an origin
+        and it would just be how much away from the origin it is. Sounds good.
+    */
+  }
 
   return (
     <>
+      <FileBar quill={quillRef} setPageId={setPageId} />
       <button onClick={sendData}>CLICK ME</button>
       <div className="parent-div">
         <div className="text-editor">
@@ -375,7 +399,7 @@ function TextEditor() {
             onKeyDown={handleKeyPress}
           />
         </div>
-        <div ref={boardRef} className="text-editor">
+        <div ref={boardRef} className="canvas_editor">
           <canvas className="canvas" ref={canvasRef}></canvas>
           <div>
             {inputList.map((input, index) => {

@@ -2,16 +2,33 @@ html,
 body {
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
+
 .parent-div {
   display: flex;
+  overflow: hidden;
 }
 .text-editor {
+  flex: 1;
+  width: 100%;
+  /* border-style: solid; */
+  overflow: auto;
+  position: relative;
+}
+
+.canvas_editor {
   flex: 1;
   width: 100%;
   border-style: solid;
   overflow: hidden;
   position: relative;
+  /* cursor: ew-resize; */
+}
+
+.text-editor:hover {
+  overflow: auto;
+  background-color: red;
 }
 
 .box {
@@ -31,13 +48,13 @@ body {
 }
 
 .ql-editor {
-  height: 700px;
+  height: 100vh;
 }
 
 .canvas {
   flex: 1;
   height: 100%;
-  background-color: rgb(202, 202, 241);
+  background-color: rgb(217, 217, 234);
   overflow: hidden;
   max-height: 700px;
 }
