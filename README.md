@@ -7,12 +7,12 @@ Building an application that allows you to quickly make knowledge trees.
 * Helpful to create a knowledge graph to see where what I am currently learning fits into the big picture
 * Future focus would also be able to explore different people's mind maps on all sorts of topics
 
-Tech Stack
+**Tech Stack**
 * PostgreSQL
 * React
 * Node
 
-Check out current progress here!
+**Check out current progress here!**
 https://douglashuang.notion.site/FEATURED-Building-a-Knowledge-Tree-Application-0b1498647ca6413abd5a3d9dddf7c100
 
 Inspired by knowledge maps:
