@@ -143,7 +143,6 @@ function TextEditor() {
       const currentX = parseInt(getComputedStyle(div).getPropertyValue("left"));
       if (inputList[i]) {
         // div.style.transform = `${"translate(${offsetX}px)"}`;
-        console.log("scale", scale);
         div.style.bottom = `${(inputList[i].y - offsetY) * scale}px`;
         // have to fix the amount it pans and also when the mouse goes over the div.
         div.style.left = `${(inputList[i].x + offsetX) * scale}px`;
@@ -265,7 +264,7 @@ function TextEditor() {
     const deltaY = event.deltaY;
     const scaleAmount = -deltaY / 500;
     scale = scale * (1 + scaleAmount);
-    console.log(scale);
+    // console.log(scale);
     // zoom the page based on where the cursor is
     // var distX = (event.pageX - rect.left) / canvas.clientWidth;
     // var distY = (event.pageY - rect.top) / canvas.clientHeight;

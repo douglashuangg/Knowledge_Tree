@@ -4,19 +4,28 @@ const cors = require("cors");
 const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
+const privateRoutes = require("./routes/private.js");
+const authRoutes = require("./routes/auth.js");
+
 dotenv.config();
 
 const app = express();
 
-//cors
+// cors middleware
 app.use(cors());
+
+// cookie parser middleware
+app.use(cookieParser());
 
 // body parser middleware setup
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.use("/auth", authRoutes);
+app.use("/private", privateRoutes);
+
 app.get("/fetchFiles", async (req, res) => {
-  //res.send("hello");
   try {
     // database connection
     const client = new Client({

@@ -44,7 +44,7 @@ body {
   padding: 1em;
   margin: auto;
   user-select: none;
-  background-color: yellowgreen;
+  background-color: #bdc4cf;
 }
 
 .ql-editor {
@@ -54,7 +54,7 @@ body {
 .canvas {
   flex: 1;
   height: 100%;
-  background-color: rgb(217, 217, 234);
+  background-color: rgb(234, 217, 222);
   overflow: hidden;
   max-height: 700px;
 }
