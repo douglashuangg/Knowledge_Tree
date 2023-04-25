@@ -8,12 +8,21 @@ import "./app.css";
 function App() {
   const url = "http://localhost:5000/private";
   const [loggedIn, setLoggedIn] = useState();
+  function handleLogout() {
+    const logoutUrl = "http://localhost:5000/auth/logout";
+    axios.get(logoutUrl, { withCredentials: true }).then((response) => {
+      setLoggedIn(false);
+      console.log("logged out");
+    });
+  }
   useEffect(() => {
     axios
-      .get(url)
+      .get(url, {
+        withCredentials: true,
+      })
       .then((response) => {
         setLoggedIn(response.data.loggedIn);
-        console.log(response.data.loggedIn);
+        console.log("logged in", response.data.loggedIn);
       })
       .catch((error) => {
         console.log(error);
@@ -23,10 +32,20 @@ function App() {
     <>
       {loggedIn ? <TextEditor /> : <LandingPage />}
       <nav>
-        <ul>
-          <li className="navbar">
-            <Link to={`/login`}>Login</Link>
+        <ul className="navbar">
+          <li>
+            {loggedIn ? (
+              <Link onClick={handleLogout} to={`#`}>
+                Log out
+              </Link>
+            ) : (
+              <Link to={`/login`}>Log in</Link>
+            )}
           </li>
+          <li>
+            <Link to={`/explore`}>Explore</Link>
+          </li>
+          <li>Your Brain</li>
         </ul>
       </nav>
       {/* <LandingPage /> */}

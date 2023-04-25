@@ -19,6 +19,7 @@
 .file_element {
   /* border-style: solid; */
   padding: 0.001rem 1rem;
+  border-radius: 0.4rem;
   /* & .file_element--new{
 
   } */

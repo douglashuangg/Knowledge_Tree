@@ -9,7 +9,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const url = "http://localhost:5000/auth/login";
+  const url = "http://localhost:5000/auth/register";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -23,19 +23,18 @@ function Login() {
         }
       )
       .then((response) => {
-        console.log("Message sent successfully!", response);
+        console.log("User created successfully", response);
         navigate("/");
       })
       .catch((error) => {
         console.error("An error occurred while sending the message:", error);
       });
   };
-
   return (
     <>
       <Link to={`/`}>Redwood</Link>
       <div className="login_title">
-        <h1 className="text-7xl pt-8">Login</h1>
+        <h1 className="text-7xl pt-8">Sign up</h1>
       </div>
       <div className="login_container">
         <form className="login_form" onSubmit={handleSubmit}>
@@ -58,13 +57,12 @@ function Login() {
               placeholder="Enter your password"
               onChange={(event) => setPassword(event.target.value)}
             />
-            <p>Forgot your password?</p>
           </div>
           <button className="login_button" type="submit">
-            Log In
+            Sign up
           </button>
           <p>
-            Don't have an account? <Link to={`/signup`}>Sign up</Link>
+            Already have an account? <Link to={`/login`}>Log in</Link>
           </p>
         </form>
       </div>

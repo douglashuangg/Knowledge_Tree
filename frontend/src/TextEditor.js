@@ -1,10 +1,12 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import ReactQuill from "react-quill";
 import Draggable from "react-draggable";
 import axios from "axios";
 import "react-quill/dist/quill.snow.css";
 import "./textEditor.css";
 import FileBar from "./FileBar";
+import ReactFlow, { useNodesState, useEdgesState, addEdge } from "reactflow";
+import "reactflow/dist/style.css";
 
 function TextEditor() {
   const quillRef = useRef(null);
@@ -12,8 +14,23 @@ function TextEditor() {
   const [input, setInput] = useState("");
   const [inputList, setInputList] = useState([]);
   const [pageId, setPageId] = useState();
-  const divRefs = useRef([]);
+  const [positions, setPositions] = useState({});
+
+  // react flow
+  const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
+  const initialElements = [
+    {
+      id: "0",
+      data: { label: "Input Node" },
+      position: { x: 100, y: 0 },
+    },
+  ];
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const divRefs = useRef({});
   const boardRef = useRef(null);
+  const coordinateRef = useRef({});
 
   let canvas;
   let context;
@@ -37,6 +54,10 @@ function TextEditor() {
   // mouse functions
   let leftMouseDown = false;
   let rightMouseDown = false;
+
+  // coordinates of divs
+  let prevPosX;
+  let prevPosY;
 
   useEffect(() => {
     canvas = canvasRef.current;
@@ -78,22 +99,6 @@ function TextEditor() {
       console.log("DONE");
     });
   }
-  // useEffect(() => {
-  //   const requestOptions = {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ title: "React Hooks POST Request Example" }),
-  //   };
-  //   fetch("/home", requestOptions)
-  //     .then((res) => res.json())
-  //     .then((data) => console.log(data));
-  // }, []);
-
-  // function disableScroll(e) {
-  //   if (board.contains(e.target)) {
-  //     e.preventDefault();
-  //   }
-  // }
 
   const redrawCanvas = () => {
     // set the canvas to the size of the canvas
@@ -107,7 +112,6 @@ function TextEditor() {
 
     for (let i = 0; i < drawings.length; i++) {
       const line = drawings[i];
-      // console.log("Original line", line.x0);
       // so it keeps the original line, and then toScreenX scales it.
       drawLine(
         toScreenX(line.x0),
@@ -120,61 +124,79 @@ function TextEditor() {
     //sizeDiv();
   };
 
+  const objRef = useRef([]);
+
   function sizeDiv() {
-    for (let i = 0; i < divRefs.current.length; i++) {
-      let div = divRefs.current[i];
-      if (div == null) {
-        break;
-      }
-      const currentWidth = parseInt(
-        getComputedStyle(div).getPropertyValue("width")
-      );
-      const currentHeight = parseInt(
-        getComputedStyle(div).getPropertyValue("height")
-      );
+    for (let i = 0; i < Object.keys(divRefs.current).length; i++) {
+      // const currentWidth = parseInt(
+      //   getComputedStyle(div).getPropertyValue("width")
+      // );
+      // const currentHeight = parseInt(
+      //   getComputedStyle(div).getPropertyValue("height")
+      // );
 
-      const currentY = parseInt(
-        getComputedStyle(div).getPropertyValue("bottom")
-      );
+      if (inputList[i] && positions[inputList[i].key]) {
+        let div = divRefs.current[inputList[i].key];
+        if (div == null) {
+          break;
+        }
+        const currentX = parseInt(
+          getComputedStyle(div).getPropertyValue("left")
+        );
+        console.log("CURRENT X", currentX);
+        const key = inputList[i].key;
+        let positionX = positions[inputList[i].key].x;
+        let positionY = positions[inputList[i].key].y;
+        const x = coordinateRef.current[key].x;
+        const y = coordinateRef.current[key].y;
 
-      const transformation = parseInt(
-        getComputedStyle(div).getPropertyValue("transform")
-      );
-      const currentX = parseInt(getComputedStyle(div).getPropertyValue("left"));
-      if (inputList[i]) {
-        // div.style.transform = `${"translate(${offsetX}px)"}`;
-        div.style.bottom = `${(inputList[i].y - offsetY) * scale}px`;
+        let originalHeight = 0;
+        let originalWidth = 0;
+        // if (!objRef.current[i].isOriginal) {
+        //   objRef.current[i].isOriginal = true;
+        //   objRef.current[i].height = currentHeight;
+        //   objRef.current[i].width = currentWidth;
+
+        //   originalHeight = currentHeight;
+        //   originalWidth = currentWidth;
+        // } else {
+        //   originalHeight = objRef.current[i].height;
+        //   originalWidth = objRef.current[i].width;
+        // }
+
+        // offsetX += positionX - inputList[i].x;
+        // offsetY += positionY - inputList[i].y;
+
+        // get coordinates of opposite corner
+        let x_corner_scaled =
+          (inputList[i].x + originalWidth + offsetX) * scale;
+        let y_corner_scaled =
+          (inputList[i].y + originalHeight - offsetY) * scale;
+
+        // it was inputList[i].x
+        console.log("x: " + x + " y: " + y);
+        let x_scaled = (x + offsetX) * scale;
+        let y_scaled = (y - offsetY) * scale;
+        let newWidth = x_corner_scaled - x_scaled;
+        let newHeight = y_corner_scaled - y_scaled;
+        console.log(x_scaled);
+        // scale the coordinates
+        // get the new height and width
+        div.style.bottom = "0px";
         // have to fix the amount it pans and also when the mouse goes over the div.
-        div.style.left = `${(inputList[i].x + offsetX) * scale}px`;
-        div.style.width = `${50 * scale}px`;
-        div.style.height = `${50 * scale}px`;
+        div.style.left = "0px";
+        // div.style.width = `${50 * scale}px`;
+        // div.style.height = `${50 * scale}px`;
+        // div.style.width = `${originalWidth * scale}px`;
+        // div.style.height = `${originalHeight * scale}px`;
+
         div.style.fontSize = `${1 * scale}em`;
       }
-      //   const newWidth = toScreenX(currentWidth);
-      //   const newHeight = toScreenY(currentHeight);
-      //   div.style.width = `${newWidth}px`;
-      //   div.style.height = `${newHeight}px`;
-      //   if (deltaY < 0) {
-      //     const newWidth = currentWidth * scale;
-      //     const newHeight = currentHeight * scale;
-      //     div.style.width = `${newWidth}px`;
-      //     div.style.height = `${newHeight}px`;
-      //   } else {
-      //     const newWidth = currentWidth / scale;
-      //     const newHeight = currentHeight / scale;
-      //     div.style.width = `${newWidth}px`;
-      //     div.style.height = `${newHeight}px`;
-      //   }
     }
   }
 
   // convert coordinates
   function toScreenX(xTrue) {
-    // console.log("true:", xTrue + offsetX);
-
-    // console.log("line", xTrue);
-    // console.log("line scale", scale);
-    // console.log("together", xTrue * scale);
     return (xTrue + offsetX) * scale;
   }
   function toScreenY(yTrue) {
@@ -188,14 +210,6 @@ function TextEditor() {
     return yScreen / scale - offsetY;
   }
 
-  const trueWidth = () => {
-    return canvas.clientWidth / scale;
-  };
-
-  const trueHeight = () => {
-    return canvas.clientHeight / scale;
-  };
-
   function onMouseMove(event) {
     const rect = canvas.getBoundingClientRect();
 
@@ -203,7 +217,6 @@ function TextEditor() {
     cursorX = event.pageX - rect.left;
     cursorY = event.pageY - rect.top;
 
-    // console.log(cursorX);
     const scaledX = toTrueX(cursorX);
     const scaledY = toTrueY(cursorY);
     const prevScaledX = toTrueX(prevCursorX);
@@ -219,6 +232,25 @@ function TextEditor() {
       });
       // draw a line
       drawLine(prevCursorX, prevCursorY, cursorX, cursorY);
+      // think the error is here that it is not accounting for something.
+      // ACTUALLY HAVE NO IDEA WHAT THIS IS
+      // for (let i = 0; i < divRefs.current.length; i++) {
+      //   let div = divRefs.current[i];
+
+      //   let element = div.getBoundingClientRect();
+      //   let board = boardRef.current.getBoundingClientRect();
+      //   let currentPosX = element.left - board.left;
+      //   let currentPosY = board.height - element.top;
+      //   if (div == null) {
+      //     break;
+      //   }
+      //   offsetX += (currentPosX - prevPosX) / scale;
+      //   offsetY += (currentPosY - prevPosY) / scale;
+      //   // console.log("pos y", currentPosY, prevPosY);
+
+      //   prevPosX = currentPosX;
+      //   prevPosY = currentPosY;
+      // }
     }
     if (rightMouseDown) {
       // move the screen
@@ -251,6 +283,20 @@ function TextEditor() {
     cursorY = event.pageY - rect.top;
     prevCursorX = event.pageX - rect.left;
     prevCursorY = event.pageY - rect.top;
+
+    // set all the current positions of divs on mouse down.
+    // for (let i = 0; i < divRefs.current.length; i++) {
+    //   let div = divRefs.current[i];
+    //   if (div == null) {
+    //     break;
+    //   }
+    //   let element = div.getBoundingClientRect();
+    //   let board = boardRef.current.getBoundingClientRect();
+    //   let currentPosX = element.left - board.left;
+    //   let currentPosY = board.height - element.top;
+    //   prevPosX = currentPosX;
+    //   prevPosY = currentPosY;
+    // }
   }
 
   function onMouseUp() {
@@ -259,56 +305,13 @@ function TextEditor() {
   }
 
   const onMouseWheel = (event) => {
-    const rect = canvas.getBoundingClientRect();
-
+    //event.preventDefault();
     const deltaY = event.deltaY;
     const scaleAmount = -deltaY / 500;
     scale = scale * (1 + scaleAmount);
-    // console.log(scale);
-    // zoom the page based on where the cursor is
-    // var distX = (event.pageX - rect.left) / canvas.clientWidth;
-    // var distY = (event.pageY - rect.top) / canvas.clientHeight;
 
-    // // calculate how much we need to zoom
-    // const unitsZoomedX = trueWidth() * scaleAmount;
-    // const unitsZoomedY = trueHeight() * scaleAmount;
-
-    // const unitsAddLeft = unitsZoomedX * distX;
-    // const unitsAddTop = unitsZoomedY * distY;
-
-    // offsetX -= unitsAddLeft;
-    // offsetY -= unitsAddTop;
-    // for (let i = 0; i < divRefs.current.length; i++) {
-    //   let div = divRefs.current[i];
-    //   if (div == null) {
-    //     break;
-    //   }
-    //   const currentWidth = parseInt(
-    //     getComputedStyle(div).getPropertyValue("width")
-    //   );
-    //   const currentHeight = parseInt(
-    //     getComputedStyle(div).getPropertyValue("height")
-    //   );
-
-    //   const newWidth = toScreenX(currentWidth);
-    //   const newHeight = toScreenY(currentHeight);
-    //   div.style.width = `${newWidth}px`;
-    //   div.style.height = `${newHeight}px`;
-
-    //   if (deltaY < 0) {
-    //     const newWidth = currentWidth * scale;
-    //     const newHeight = currentHeight * scale;
-    //     div.style.width = `${newWidth}px`;
-    //     div.style.height = `${newHeight}px`;
-    //   } else {
-    //     const newWidth = currentWidth * scale;
-    //     const newHeight = currentHeight * scale;
-    //     div.style.width = `${newWidth}px`;
-    //     div.style.height = `${newHeight}px`;
-    //   }
-    // }
     sizeDiv();
-    redrawCanvas();
+    // redrawCanvas();
   };
 
   function drawLine(x0, y0, x1, y1) {
@@ -336,12 +339,59 @@ function TextEditor() {
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
-      let key = Math.random();
+      let key = Math.random().toString();
       setInputList((prevState) => [
         ...prevState,
-        { key: key, value: input, x: 50, y: 50 },
+        {
+          key: key,
+          value: input,
+          x: 50,
+          y: 50,
+          isOriginal: 0,
+          height: 0,
+          width: 0,
+        },
       ]);
+
+      const newNode = {
+        id: key,
+        position: { x: 50, y: 50 },
+        data: { label: input },
+      };
+
+      setNodes((prevState) => prevState.concat(newNode));
+
+      // do not remember what this is for
+      objRef.current.push({ isOriginal: false, height: 0, width: 0 });
       setInput("");
+
+      // hardcoded for now, will get the actual position later.
+      setPositions((prevState) => ({
+        ...prevState,
+        [key]: { x: 50, y: 50 },
+      }));
+      coordinateRef.current[key] = { x: 50, y: 50 };
+
+      // change orignal x and y values depending on certain factors
+
+      // if (inputList.length != 0) {
+      //   const index = divRefs.current.length - 1;
+      //   const div = divRefs.current[index];
+      //   const rect = div.getBoundingClientRect();
+      //   const originalX = rect.left;
+      //   const originalY = rect.top;
+      //   setInputList(
+      //     inputList.map((input, i) => {
+      //       if (i === index) {
+      //         // Create a *new* object with changes
+      //         return { ...input, x: originalX, y: originalY };
+      //       } else {
+      //         // No changes
+      //         return input;
+      //       }
+      //     })
+      //   );
+      // }
     }
   };
 
@@ -362,7 +412,7 @@ function TextEditor() {
   useEffect(() => {
     const interval = setInterval(() => {
       let data = quillRef.current.getEditor().getContents()["ops"][0]["insert"];
-      console.log(`[${Date.now()}] Data:`, data);
+      // console.log(`[${Date.now()}] Data:`, data);
       if (old !== data && pageId) {
         console.log("sent");
         sendData({
@@ -385,6 +435,67 @@ function TextEditor() {
     */
   }
 
+  const handleDrag = (key, event, ui) => {
+    let board = boardRef.current.getBoundingClientRect();
+    const div = event.target;
+    const sticky = div.getBoundingClientRect();
+
+    // finds the coordinates relative to the size of the board
+    const x = sticky.left - board.left;
+    const y = board.height - sticky.top + board.top - sticky.height;
+    // const currentWidth = parseInt(
+    //   getComputedStyle(boardRef).getPropertyValue("width")
+    // );
+    // const { x, y } = ui;
+    // console.log("X, Y", x, y);
+    setPositions((prevState) => ({
+      ...prevState,
+      [key]: { x, y },
+    }));
+    const thisElement = divRefs.current[key];
+
+    thisElement.style.left = "0px";
+    thisElement.style.bottom = "0px";
+    coordinateRef.current[key] = { x, y };
+    console.log("drag position", x, y);
+    // don't remember what this is for
+    // objRef.current.push({ isOriginal: false, height: y, width: x });
+  };
+
+  // const initialNodes = [
+  //   { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
+  //   { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
+  // ];
+
+  // initialNodesTest = inputList.map((input) => ({
+  //   id: input.key,
+  //   position: { x: input.x, y: input.y },
+  //   data: { label: input.value },
+  // }));
+  // setNodes(initialNodesTest);
+  // console.log(nodes);
+
+  // useEffect(() => {
+  //   const input = inputList[inputList.length - 1];
+  //   if (input) {
+  //     setNodes((node) => {
+  //       return [
+  //         ...node,
+  //         {
+  //           id: input.key,
+  //           position: { x: 50, y: 50 },
+  //           data: { label: input },
+  //         },
+  //       ];
+  //     });
+  //   }
+  // }, [inputList]);
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
+
   return (
     <>
       <FileBar quill={quillRef} setPageId={setPageId} />
@@ -399,27 +510,17 @@ function TextEditor() {
           />
         </div>
         <div ref={boardRef} className="canvas_editor">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            maxZoom={1000}
+            minZoom={0.1}
+          />
+
           <canvas className="canvas" ref={canvasRef}></canvas>
-          <div>
-            {inputList.map((input, index) => {
-              return (
-                <Draggable>
-                  <div
-                    ref={(ref) =>
-                      ref &&
-                      !divRefs.current.includes(ref) &&
-                      divRefs.current.push(ref)
-                    }
-                    key={input.key}
-                    className="box"
-                  >
-                    <button onClick={() => deleteNote(input.key)}>X</button>
-                    <div>{input.value}</div>
-                  </div>
-                </Draggable>
-              );
-            })}
-          </div>
         </div>
       </div>
     </>

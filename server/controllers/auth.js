@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
+
 const register = async (req, res) => {
   try {
     const pool = new Pool({
@@ -16,14 +17,38 @@ const register = async (req, res) => {
       const hashedPassword = bcrypt.hashSync(req.body.password, salt);
 
       // add username and hashed password to database.
-
       await pool.query(
         "INSERT INTO users (username, password, email) VALUES ($1, $2, $3)",
         [req.body.username, hashedPassword, req.body.username]
       );
 
+      const { rows } = await pool.query(
+        "SELECT * FROM users WHERE username = $1",
+        [req.body.username]
+      );
+
       pool.end();
+
+      const user = rows[0];
+      const payload = {
+        id: user.user_id,
+      };
+
+      // create jwt token
+      const token = jwt.sign(payload, process.env.JWT_secret, {
+        expiresIn: "1d",
+      });
+      // set token in cookies
+      res
+        .cookie("access_token", token, {
+          httpOnly: true,
+        })
+        .status(200)
+        .json({
+          username: user.username,
+        });
       res.status(201).json("New User created");
+      console.log("logged in");
     } else {
       res.status(403).json("Please provide a password");
     }
@@ -78,6 +103,7 @@ const login = async (req, res) => {
       .json({
         username: user.username,
       });
+    console.log("logged in");
   } catch (err) {
     res.status(500).json(err.message);
   }
@@ -85,6 +111,7 @@ const login = async (req, res) => {
 
 const logout = (req, res) => {
   res.clearCookie("access_token");
+  console.log("logged out");
   res.status(200).json("Logout successful");
 };
 
