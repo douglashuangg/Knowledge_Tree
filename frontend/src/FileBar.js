@@ -4,10 +4,12 @@ import "./fileBar.css";
 
 function FileBar({ quill, setPageId }) {
   const [files, setFiles] = useState([]);
-  const url = "http://localhost:5000/fetchFiles";
+  const url = "http://localhost:5000/private/fetchFiles";
   useEffect(() => {
     axios
-      .get(url)
+      .get(url, {
+        withCredentials: true,
+      })
       .then((response) => {
         setFiles(response.data);
         console.log("success");

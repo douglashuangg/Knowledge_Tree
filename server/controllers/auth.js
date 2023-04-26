@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
+const session = require("express-session");
 
 const register = async (req, res) => {
   try {

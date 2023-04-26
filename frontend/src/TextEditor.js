@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import ReactQuill from "react-quill";
-import Draggable from "react-draggable";
 import axios from "axios";
 import "react-quill/dist/quill.snow.css";
 import "./textEditor.css";
@@ -18,13 +17,7 @@ function TextEditor() {
 
   // react flow
   const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
-  const initialElements = [
-    {
-      id: "0",
-      data: { label: "Input Node" },
-      position: { x: 100, y: 0 },
-    },
-  ];
+
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
