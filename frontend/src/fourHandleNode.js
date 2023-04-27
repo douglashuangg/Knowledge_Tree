@@ -1,14 +1,34 @@
-import { useCallback } from "react";
-import { Handle, Position } from "reactflow";
+import { useState } from "react";
+import { Handle, Position, SelectionMode } from "reactflow";
+import "./fourHandleNode.css";
 
-function fourHandleNode({ data }) {
+function FourHandleNode({ data, selected }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(data.label);
+  console.log(selected);
+  const onChange = () => {
+    console.log("change");
+  };
+
+  const handleClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
+
   return (
     <div
       style={{
         background: "#fff",
-        border: "1px solid #000",
+        border: `solid ${selected ? " 2px black" : "1px black"}`,
         borderRadius: 4,
-        padding: 10,
+        padding: 5,
         minWidth: 120,
         display: "flex",
         flexDirection: "column",
@@ -41,9 +61,26 @@ function fourHandleNode({ data }) {
         style={{ background: "black" }}
         id="left"
       />
-      <div>{data.label}</div>
+
+      {!isEditing ? (
+        <div
+          style={{ padding: "10px", width: "100%" }}
+          onDoubleClick={handleClick}
+        >
+          {value}
+        </div>
+      ) : (
+        <textarea
+          value={value}
+          id="text"
+          name="text"
+          className="nodrag"
+          onBlur={handleBlur}
+          onChange={handleChange}
+        />
+      )}
     </div>
   );
 }
 
-export default fourHandleNode;
+export default FourHandleNode;

@@ -9,12 +9,18 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   useStore,
+  getIncomers,
+  getOutgoers,
+  getConnectedEdges,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import fourHandleNode from "./fourHandleNode";
 
 const nodeTypes = {
   fourHandleNode: fourHandleNode,
+  selectedNode: {
+    border: "2px solid blue",
+  },
 };
 
 const zoomSelector = (s) => {
@@ -523,6 +529,35 @@ function TextEditor() {
     // console.log(event);
     console.log("hurray");
   };
+
+  // will need to understand this eventually, also only works on backspace, so will have to add the delete button
+  const onNodesDelete = useCallback(
+    (deleted) => {
+      setEdges(
+        deleted.reduce((acc, node) => {
+          const incomers = getIncomers(node, nodes, edges);
+          const outgoers = getOutgoers(node, nodes, edges);
+          const connectedEdges = getConnectedEdges([node], edges);
+
+          const remainingEdges = acc.filter(
+            (edge) => !connectedEdges.includes(edge)
+          );
+
+          const createdEdges = incomers.flatMap(({ id: source }) =>
+            outgoers.map(({ id: target }) => ({
+              id: `${source}->${target}`,
+              source,
+              target,
+            }))
+          );
+
+          return [...remainingEdges, ...createdEdges];
+        }, edges)
+      );
+    },
+    [nodes, edges]
+  );
+
   return (
     <>
       <FileBar quill={quillRef} setPageId={setPageId} />
@@ -549,6 +584,7 @@ function TextEditor() {
             onPaneClick={handleCanvasClick}
             nodeTypes={memoizedNodes}
             ref={reactFlowRef}
+            onNodesDelete={onNodesDelete}
           />
 
           <canvas className="canvas" ref={canvasRef}></canvas>

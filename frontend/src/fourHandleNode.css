@@ -1,0 +1,11 @@
+.nodrag {
+  /* border: none; */
+  text-align: center;
+  resize: none;
+  overflow: hidden;
+  font-family: Arial;
+}
+
+.nodrag:focus {
+  outline: none;
+}
