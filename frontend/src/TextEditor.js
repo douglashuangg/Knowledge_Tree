@@ -1,25 +1,65 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import ReactQuill from "react-quill";
 import axios from "axios";
 import "react-quill/dist/quill.snow.css";
 import "./textEditor.css";
 import FileBar from "./FileBar";
-import ReactFlow, { useNodesState, useEdgesState, addEdge } from "reactflow";
+import ReactFlow, {
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  useStore,
+} from "reactflow";
 import "reactflow/dist/style.css";
+import fourHandleNode from "./fourHandleNode";
+
+const nodeTypes = {
+  fourHandleNode: fourHandleNode,
+};
+
+const zoomSelector = (s) => {
+  return s.transform;
+};
 
 function TextEditor() {
+  let offsetProperties = useStore(zoomSelector);
+
   const quillRef = useRef(null);
   const canvasRef = useRef(null);
+  const reactFlowRef = useRef(null);
+  let offsetXRef = useRef(0);
+  let offsetYRef = useRef(0);
+  let scaleRef = useRef(1);
   const [input, setInput] = useState("");
   const [inputList, setInputList] = useState([]);
   const [pageId, setPageId] = useState();
   const [positions, setPositions] = useState({});
+  const [addingNode, setAddingNode] = useState(false);
 
   // react flow
-  const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
+
+  // should not be able to link to itself.
+  const initialEdges = [
+    {
+      id: "edge-1",
+      source: "1",
+      target: "2",
+      sourceHandle: "top",
+      targetHandle: "bottom",
+    },
+    {
+      id: "edge-2",
+      source: "1",
+      target: "3",
+      sourceHandle: "right",
+      targetHandle: "left",
+    },
+  ];
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const memoizedNodes = useMemo(() => nodeTypes, []);
 
   const divRefs = useRef({});
   const boardRef = useRef(null);
@@ -28,6 +68,7 @@ function TextEditor() {
   let canvas;
   let context;
   let board;
+  let reactFlow;
 
   // list of all strokes drawn
   const drawings = [];
@@ -56,6 +97,8 @@ function TextEditor() {
     canvas = canvasRef.current;
     board = boardRef.current;
     context = canvas.getContext("2d");
+    reactFlow = reactFlowRef.current;
+    // reactFlow.addEventListener("wheel", onMouseWheel, false);
     // Mouse Event Handlers
     board.addEventListener("mousedown", onMouseDown);
     board.addEventListener("mouseup", onMouseUp, false);
@@ -172,7 +215,7 @@ function TextEditor() {
         let y_scaled = (y - offsetY) * scale;
         let newWidth = x_corner_scaled - x_scaled;
         let newHeight = y_corner_scaled - y_scaled;
-        console.log(x_scaled);
+        // console.log(x_scaled);
         // scale the coordinates
         // get the new height and width
         div.style.bottom = "0px";
@@ -216,6 +259,7 @@ function TextEditor() {
     const prevScaledY = toTrueY(prevCursorY);
 
     if (leftMouseDown) {
+      console.log("entered");
       // add the line to our drawing history
       drawings.push({
         x0: prevScaledX,
@@ -225,6 +269,8 @@ function TextEditor() {
       });
       // draw a line
       drawLine(prevCursorX, prevCursorY, cursorX, cursorY);
+      offsetX += (cursorX - prevCursorX) / scale;
+      offsetY += (cursorY - prevCursorY) / scale;
       // think the error is here that it is not accounting for something.
       // ACTUALLY HAVE NO IDEA WHAT THIS IS
       // for (let i = 0; i < divRefs.current.length; i++) {
@@ -297,15 +343,16 @@ function TextEditor() {
     rightMouseDown = false;
   }
 
-  const onMouseWheel = (event) => {
-    //event.preventDefault();
-    const deltaY = event.deltaY;
-    const scaleAmount = -deltaY / 500;
-    scale = scale * (1 + scaleAmount);
+  // const onMouseWheel = (event) => {
+  //   //event.preventDefault();
+  //   console.log("wheel");
+  //   const deltaY = event.deltaY;
+  //   const scaleAmount = -deltaY / 500;
+  //   scale = scale * (1 + scaleAmount);
 
-    sizeDiv();
-    // redrawCanvas();
-  };
+  //   sizeDiv();
+  //   // redrawCanvas();
+  // };
 
   function drawLine(x0, y0, x1, y1) {
     context.beginPath();
@@ -350,6 +397,7 @@ function TextEditor() {
         id: key,
         position: { x: 50, y: 50 },
         data: { label: input },
+        type: "fourHandleNode",
       };
 
       setNodes((prevState) => prevState.concat(newNode));
@@ -428,67 +476,53 @@ function TextEditor() {
     */
   }
 
-  const handleDrag = (key, event, ui) => {
-    let board = boardRef.current.getBoundingClientRect();
-    const div = event.target;
-    const sticky = div.getBoundingClientRect();
-
-    // finds the coordinates relative to the size of the board
-    const x = sticky.left - board.left;
-    const y = board.height - sticky.top + board.top - sticky.height;
-    // const currentWidth = parseInt(
-    //   getComputedStyle(boardRef).getPropertyValue("width")
-    // );
-    // const { x, y } = ui;
-    // console.log("X, Y", x, y);
-    setPositions((prevState) => ({
-      ...prevState,
-      [key]: { x, y },
-    }));
-    const thisElement = divRefs.current[key];
-
-    thisElement.style.left = "0px";
-    thisElement.style.bottom = "0px";
-    coordinateRef.current[key] = { x, y };
-    console.log("drag position", x, y);
-    // don't remember what this is for
-    // objRef.current.push({ isOriginal: false, height: y, width: x });
-  };
-
-  // const initialNodes = [
-  //   { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
-  //   { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
-  // ];
-
-  // initialNodesTest = inputList.map((input) => ({
-  //   id: input.key,
-  //   position: { x: input.x, y: input.y },
-  //   data: { label: input.value },
-  // }));
-  // setNodes(initialNodesTest);
-  // console.log(nodes);
-
-  // useEffect(() => {
-  //   const input = inputList[inputList.length - 1];
-  //   if (input) {
-  //     setNodes((node) => {
-  //       return [
-  //         ...node,
-  //         {
-  //           id: input.key,
-  //           position: { x: 50, y: 50 },
-  //           data: { label: input },
-  //         },
-  //       ];
-  //     });
-  //   }
-  // }, [inputList]);
-
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
+  const addNodeClicked = () => {
+    // change the shape of the mouse
+    // get position of the mouse
+    // where the mouse is clicked, add a node
+    setAddingNode(true);
+  };
+
+  const handleCanvasClick = (event) => {
+    const boundingCanvas = boardRef.current.getBoundingClientRect();
+    console.log("offset in click X", offsetXRef.current);
+
+    const offsetXValue = offsetProperties[0];
+    const offsetYValue = offsetProperties[1];
+    const zoomLevel = offsetProperties[2];
+    const position = {
+      x: (event.clientX - boundingCanvas.left - offsetXValue) / zoomLevel,
+      y: (event.clientY - boundingCanvas.top - offsetYValue) / zoomLevel,
+    };
+    console.log("zoom", offsetProperties[0], offsetXRef.current);
+    if (addingNode) {
+      let key = Math.random().toString();
+
+      // console.log(position);
+
+      const newNode = {
+        id: key,
+        position: position,
+        data: { label: "" },
+        type: "fourHandleNode",
+      };
+
+      setNodes((prevState) => prevState.concat(newNode));
+
+      setAddingNode(false);
+    }
+  };
+
+  const onMouseWheel = (event) => {
+    // alert("entered");
+    // console.log(event);
+    console.log("hurray");
+  };
   return (
     <>
       <FileBar quill={quillRef} setPageId={setPageId} />
@@ -503,6 +537,7 @@ function TextEditor() {
           />
         </div>
         <div ref={boardRef} className="canvas_editor">
+          <button onClick={addNodeClicked}>Add Node</button>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -511,6 +546,9 @@ function TextEditor() {
             onConnect={onConnect}
             maxZoom={1000}
             minZoom={0.1}
+            onPaneClick={handleCanvasClick}
+            nodeTypes={memoizedNodes}
+            ref={reactFlowRef}
           />
 
           <canvas className="canvas" ref={canvasRef}></canvas>
