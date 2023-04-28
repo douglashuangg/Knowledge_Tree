@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { Handle, Position, SelectionMode } from "reactflow";
+import { Handle, Position } from "reactflow";
 import "./fourHandleNode.css";
 
 function FourHandleNode({ data, selected }) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(data.label);
   console.log(selected);
-  const onChange = () => {
-    console.log("change");
-  };
 
   const handleClick = () => {
     setIsEditing(true);

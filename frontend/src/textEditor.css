@@ -21,6 +21,7 @@ body {
   flex: 1;
   width: 100%;
   border-style: solid;
+  border-width: 1px;
   overflow: hidden;
   position: relative;
   max-height: 90vh;

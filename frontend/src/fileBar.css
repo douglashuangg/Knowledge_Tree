@@ -20,6 +20,7 @@
   /* border-style: solid; */
   padding: 0.001rem 1rem;
   border-radius: 0.4rem;
+  display: inline-block;
   /* & .file_element--new{
 
   } */
@@ -28,9 +29,64 @@
 .file_element--new {
   position: absolute;
   bottom: 1rem;
+  min-width: 15rem;
+  min-height: 3rem;
 }
 
-.file_element:hover {
+/* .file_element:hover {
   cursor: pointer;
   background-color: rgb(99, 90, 90);
+} */
+
+.button_add_map {
+  position: absolute;
+  display: block;
+  height: 100%;
+  width: 100%;
+  background-color: #1e212a;
+  color: white;
+  border-style: solid;
+  font-size: 1rem;
+}
+
+.button_add_map:hover {
+  cursor: pointer;
+  background-color: rgb(99, 90, 90);
+}
+
+.popupMenu {
+  list-style: none;
+  position: absolute;
+  padding: 1rem;
+  background-color: #eeeeee;
+  font-size: 1rem;
+  z-index: 1;
+  min-width: 10rem;
+  color: black;
+}
+
+.button_file_menu {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+.button_file_menu:hover {
+  cursor: pointer;
+  background-color: rgb(187, 187, 187);
+}
+
+.file_group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0.4rem;
+}
+
+.file_group:hover {
+  cursor: pointer;
+  background-color: rgb(99, 90, 90);
+}
+
+.button_container {
+  position: relative;
 }
