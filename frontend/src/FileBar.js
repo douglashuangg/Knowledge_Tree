@@ -2,23 +2,20 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import axios from "axios";
 import "./fileBar.css";
 
-function FileBar({ quill, setPageId }) {
-  const [files, setFiles] = useState([]);
+function FileBar({ quill, setPageId, files, setFiles }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
+  let [listLength, setListLength] = useState(0);
 
-  const buttonContainerRef = useRef([]);
-
-  const indexRef = useRef(0);
-
-  const url = "http://localhost:5000/private/fetchFiles";
+  const fetchFilesUrl = "http://localhost:5000/private/fetchFiles";
   useEffect(() => {
     axios
-      .get(url, {
+      .get(fetchFilesUrl, {
         withCredentials: true,
       })
       .then((response) => {
         setFiles(response.data);
+        setListLength(response.data.length + 1);
         console.log("success");
       })
       .catch((error) => {
@@ -26,14 +23,19 @@ function FileBar({ quill, setPageId }) {
       });
   }, []);
 
+  const buttonContainerRef = useRef([]);
+
+  const indexRef = useRef(0);
+
   const addNewFile = () => {
     const newFile = {
       title: "New Page",
       body: "",
-      file_id: files.length + 1,
+      file_id: listLength,
     };
     setFiles((prevState) => [...prevState, newFile]);
     renderBody(newFile);
+    setListLength(listLength + 1);
   };
 
   async function renderBody(file) {
@@ -103,6 +105,7 @@ function FileBar({ quill, setPageId }) {
   const handleMenu = (event, id, index) => {
     event.stopPropagation();
     indexRef.current = index;
+    console.log("id", id);
     setThisFile(id);
     setPopUpMenu(!popUpMenu);
   };
@@ -128,6 +131,7 @@ function FileBar({ quill, setPageId }) {
               >
                 ...
               </button>
+              {file.file_id}
               {popUpMenu && file.file_id == thisFile && PopUpMenu(file.file_id)}
             </div>
           </div>

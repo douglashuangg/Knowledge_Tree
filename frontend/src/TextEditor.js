@@ -43,6 +43,7 @@ function TextEditor() {
   const [pageId, setPageId] = useState();
   const [positions, setPositions] = useState({});
   const [addingNode, setAddingNode] = useState(false);
+  const [files, setFiles] = useState([]);
 
   // react flow
 
@@ -612,7 +613,12 @@ function TextEditor() {
 
   return (
     <>
-      <FileBar quill={quillRef} setPageId={setPageId} />
+      <FileBar
+        quill={quillRef}
+        setPageId={setPageId}
+        files={files}
+        setFiles={setFiles}
+      />
       <button onClick={sendData}>CLICK ME</button>
       <div className="parent-div">
         <div className="text-editor">
