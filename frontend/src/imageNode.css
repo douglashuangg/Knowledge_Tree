@@ -1,0 +1,14 @@
+.rf-node__handle-corner {
+  width: 20px;
+  height: 50px;
+}
+
+.rf-node__handle {
+  border-width: 3px; /* Adjust the thickness of the lines in the Node Resizer */
+}
+
+.rf-node__handle-line {
+  border-width: 10px;
+  stroke-width: 10px;
+  stroke: red;
+}

@@ -15,12 +15,14 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import fourHandleNode from "./fourHandleNode";
+import imageNode from "./imageNode";
 
 const nodeTypes = {
   fourHandleNode: fourHandleNode,
   selectedNode: {
     border: "2px solid blue",
   },
+  imageNode: imageNode,
 };
 
 const zoomSelector = (s) => {
@@ -442,6 +444,56 @@ function TextEditor() {
     }
   };
 
+  const [imageUrl, setImageUrl] = useState(null);
+
+  async function handlePaste() {
+    const items = await navigator.clipboard.read();
+
+    const clipboardItem = items[0];
+    console.log(clipboardItem);
+    if (
+      clipboardItem.types.includes("image/png") ||
+      clipboardItem.types.includes("image/jpeg")
+    ) {
+      console.log("handling Paste");
+
+      const blob = await clipboardItem.getType("image/png");
+      const url = URL.createObjectURL(blob);
+      console.log(url);
+      const newNode = {
+        id: Math.random().toString(),
+        data: {
+          imageUrl: url,
+        },
+        position: { x: 50, y: 50 },
+        type: "imageNode",
+      };
+      setNodes((prevState) => prevState.concat(newNode));
+    }
+
+    // for (const item of items) {
+    //   for (const type of item.types) {
+    //     if (type === "image/png" || type === "image/jpeg") {
+    //       const blob = await item.getType(type);
+    //       const url = URL.createObjectURL(blob);
+    //       setImageUrl(url);
+    //       const id = Math.random().toString();
+    //       const newNode = {
+    //         id: id,
+    //         data: {
+    //           label: (
+    //             <img src={url} style={{ maxWidth: "50%", maxHeight: "50%" }} />
+    //           ),
+    //         },
+    //         position: { x: 50, y: 50 },
+    //       };
+    //       setNodes((prevState) => prevState.concat(newNode));
+    //       return;
+    //     }
+    //   }
+    // }
+  }
+
   const handleChange = (content, delta, source, editor) => {
     const fullText = editor.getText();
     // Might have to remove this if it screw up with generating boxes
@@ -573,6 +625,7 @@ function TextEditor() {
         </div>
         <div ref={boardRef} className="canvas_editor">
           <button onClick={addNodeClicked}>Add Node</button>
+          <button onClick={handlePaste}>Paste Image</button>
           <ReactFlow
             nodes={nodes}
             edges={edges}

@@ -65,6 +65,7 @@ function FourHandleNode({ data, selected }) {
           onDoubleClick={handleClick}
         >
           {value}
+          <img src={data.imageUrl} />
         </div>
       ) : (
         <textarea
