@@ -2,10 +2,14 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import axios from "axios";
 import "./fileBar.css";
 
-function FileBar({ quill, setPageId, files, setFiles }) {
+function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
-  const [thisFile, setThisFile] = useState();
   let [listLength, setListLength] = useState(0);
+  const [thisFile, setThisFile] = useState();
+
+  const buttonContainerRef = useRef([]);
+
+  const indexRef = useRef(0);
 
   const fetchFilesUrl = "http://localhost:5000/private/fetchFiles";
   useEffect(() => {
@@ -16,16 +20,15 @@ function FileBar({ quill, setPageId, files, setFiles }) {
       .then((response) => {
         setFiles(response.data);
         setListLength(response.data.length + 1);
+        // currently setting the firs file to be the default page
+        setPageId(response.data[0].file_id);
+        renderBody(response.data[0]);
         console.log("success");
       })
       .catch((error) => {
         console.log(error);
       });
   }, []);
-
-  const buttonContainerRef = useRef([]);
-
-  const indexRef = useRef(0);
 
   const addNewFile = () => {
     const newFile = {
@@ -39,11 +42,13 @@ function FileBar({ quill, setPageId, files, setFiles }) {
   };
 
   async function renderBody(file) {
+    pageIdRef.current = file.file_id;
+    setPageId(file.file_id);
+
     const editor = quill.current.getEditor();
     // await editor.setContents([{ insert: "\n" }]);
     editor.setText(file.body);
     editor.setSelection(editor.getLength(), 0);
-    setPageId(file.file_id);
 
     // editor.setText("");
     // editor.insertText(0, body);
@@ -59,7 +64,6 @@ function FileBar({ quill, setPageId, files, setFiles }) {
   };
 
   function PopUpMenu(id) {
-    console.log("popup");
     return (
       <ul
         className="popupMenu"
@@ -84,7 +88,6 @@ function FileBar({ quill, setPageId, files, setFiles }) {
   // holy moly
   useEffect(() => {
     const listener = (event) => {
-      console.log("too fast", indexRef.current);
       if (
         !buttonContainerRef.current[indexRef.current] ||
         buttonContainerRef.current[indexRef.current].contains(event.target)

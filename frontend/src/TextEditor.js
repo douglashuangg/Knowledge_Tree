@@ -44,29 +44,11 @@ function TextEditor() {
   const [positions, setPositions] = useState({});
   const [addingNode, setAddingNode] = useState(false);
   const [files, setFiles] = useState([]);
-
-  // react flow
+  let pageIdRef = useRef();
 
   // should not be able to link to itself.
-  const initialEdges = [
-    {
-      id: "edge-1",
-      source: "1",
-      target: "2",
-      sourceHandle: "top",
-      targetHandle: "bottom",
-    },
-    {
-      id: "edge-2",
-      source: "1",
-      target: "3",
-      sourceHandle: "right",
-      targetHandle: "left",
-    },
-  ];
-
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const memoizedNodes = useMemo(() => nodeTypes, []);
 
@@ -77,7 +59,6 @@ function TextEditor() {
   let canvas;
   let context;
   let board;
-  let reactFlow;
 
   // list of all strokes drawn
   const drawings = [];
@@ -497,6 +478,26 @@ function TextEditor() {
 
   const handleChange = (content, delta, source, editor) => {
     const fullText = editor.getText();
+    const firstLine = fullText.split("\n")[0];
+    console.log("pageId", pageIdRef);
+    if (fullText.trim() !== "") {
+      setFiles((prev) =>
+        prev.map((file) => {
+          return file.file_id === pageIdRef.current
+            ? { ...file, title: firstLine, body: fullText }
+            : file;
+        })
+      );
+    } else {
+      setFiles((prev) =>
+        prev.map((file) => {
+          return file.file_id === pageIdRef.current
+            ? { ...file, title: "Untitled", body: fullText }
+            : file;
+        })
+      );
+    }
+
     // Might have to remove this if it screw up with generating boxes
     if (editor.getSelection() != null) {
       const cursorIndex = editor.getSelection().index;
@@ -513,18 +514,23 @@ function TextEditor() {
     const interval = setInterval(() => {
       let data = quillRef.current.getEditor().getContents()["ops"][0]["insert"];
       // console.log(`[${Date.now()}] Data:`, data);
+      // make sure there is a pageId before saving to database
       if (old !== data && pageId) {
         console.log("sent");
+        console.log(nodes);
+        console.log(edges);
         sendData({
           doc: data,
           id: pageId,
+          nodes: nodes,
+          edges: edges,
         });
         old = data;
       }
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [nodes, edges]);
 
   function saveCanvas() {
     // get x and y values
@@ -618,6 +624,7 @@ function TextEditor() {
         setPageId={setPageId}
         files={files}
         setFiles={setFiles}
+        pageIdRef={pageIdRef}
       />
       <button onClick={sendData}>CLICK ME</button>
       <div className="parent-div">

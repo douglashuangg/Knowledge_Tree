@@ -34,7 +34,7 @@ app.use("/auth", authRoutes);
 app.use("/private", privateRoutes);
 
 app.post("/savePost", (req, res) => {
-  console.log(req.body);
+  console.log("your post data", req.body);
   // post to postgres
   res.send({ status: "success" });
 });
