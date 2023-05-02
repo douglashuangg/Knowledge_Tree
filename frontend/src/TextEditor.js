@@ -36,14 +36,17 @@ function TextEditor() {
   const canvasRef = useRef(null);
   const reactFlowRef = useRef(null);
   let offsetXRef = useRef(0);
-  let offsetYRef = useRef(0);
-  let scaleRef = useRef(1);
+  // let offsetYRef = useRef(0);
+  // let scaleRef = useRef(1);
   const [input, setInput] = useState("");
   const [inputList, setInputList] = useState([]);
   const [pageId, setPageId] = useState();
   const [positions, setPositions] = useState({});
   const [addingNode, setAddingNode] = useState(false);
   const [files, setFiles] = useState([]);
+  let [listLength, setListLength] = useState(1);
+  const [imageUrl, setImageUrl] = useState(null);
+
   let pageIdRef = useRef();
 
   // should not be able to link to itself.
@@ -60,41 +63,18 @@ function TextEditor() {
   let context;
   let board;
 
-  // list of all strokes drawn
-  const drawings = [];
-
-  // coordinates of our cursor
-  let cursorX;
-  let cursorY;
-  let prevCursorX;
-  let prevCursorY;
-
-  // zoom amoutn
-  let scale = 1;
-  // distance from origin
-  let offsetX = 0;
-  let offsetY = 0;
-
-  // mouse functions
-  let leftMouseDown = false;
-  let rightMouseDown = false;
-
-  // coordinates of divs
-  let prevPosX;
-  let prevPosY;
-
   useEffect(() => {
     canvas = canvasRef.current;
     board = boardRef.current;
     context = canvas.getContext("2d");
-    reactFlow = reactFlowRef.current;
+    // reactFlow = reactFlowRef.current;
     // reactFlow.addEventListener("wheel", onMouseWheel, false);
     // Mouse Event Handlers
-    board.addEventListener("mousedown", onMouseDown);
-    board.addEventListener("mouseup", onMouseUp, false);
-    board.addEventListener("mouseout", onMouseUp, false);
-    board.addEventListener("mousemove", onMouseMove, false);
-    board.addEventListener("wheel", onMouseWheel, false);
+    // board.addEventListener("mousedown", onMouseDown);
+    // board.addEventListener("mouseup", onMouseUp, false);
+    // board.addEventListener("mouseout", onMouseUp, false);
+    // board.addEventListener("mousemove", onMouseMove, false);
+    // board.addEventListener("wheel", onMouseWheel, false);
 
     // board.addEventListener("mouseenter", function () {
     //   window.addEventListener("wheel", disableScroll);
@@ -112,11 +92,47 @@ function TextEditor() {
     };
 
     // if the window changes size, redraw the canvas
-    window.addEventListener("resize", (event) => {
-      redrawCanvas();
-    });
-    redrawCanvas();
+    // window.addEventListener("resize", (event) => {
+    //   redrawCanvas();
+    // });
+    // redrawCanvas();
   });
+
+  const fetchDataUrl = "http://localhost:5000/fetchFileData";
+
+  useEffect(() => {
+    if (pageIdRef.current) {
+      console.log("pageidref", pageIdRef.current);
+      axios
+        .get(fetchDataUrl, {
+          params: {
+            pageId: pageIdRef.current,
+          },
+        })
+        .then((response) => {
+          const savedNodes = response.data.nodeData.map((file) => {
+            return {
+              id: file.whiteboard_id.toString(),
+              type: file.type,
+              data: { label: file.text, color: "red" },
+              position: {
+                x: file.x,
+                y: file.y,
+                height: file.height,
+                width: file.width,
+              },
+            };
+          });
+          setNodes(savedNodes);
+          setEdges((prevState) => prevState.concat(response.data.edgeData));
+          console.log(response.data.nodeData);
+          console.log("success");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }, [pageIdRef.current]);
 
   const url = "http://localhost:5000/savePost";
 
@@ -126,246 +142,7 @@ function TextEditor() {
     });
   }
 
-  const redrawCanvas = () => {
-    // set the canvas to the size of the canvas
-    // board.style.width = `${board.clientWidth}px`;
-    // board.style.height = `${board.clientHeight}px`;
-    canvas.width = board.clientWidth;
-    canvas.height = board.clientHeight;
-
-    // context.fillStyle = "#fff";
-    // context.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < drawings.length; i++) {
-      const line = drawings[i];
-      // so it keeps the original line, and then toScreenX scales it.
-      drawLine(
-        toScreenX(line.x0),
-        toScreenY(line.y0),
-        toScreenX(line.x1),
-        toScreenY(line.y1)
-      );
-    }
-
-    //sizeDiv();
-  };
-
   const objRef = useRef([]);
-
-  function sizeDiv() {
-    for (let i = 0; i < Object.keys(divRefs.current).length; i++) {
-      // const currentWidth = parseInt(
-      //   getComputedStyle(div).getPropertyValue("width")
-      // );
-      // const currentHeight = parseInt(
-      //   getComputedStyle(div).getPropertyValue("height")
-      // );
-
-      if (inputList[i] && positions[inputList[i].key]) {
-        let div = divRefs.current[inputList[i].key];
-        if (div == null) {
-          break;
-        }
-        const currentX = parseInt(
-          getComputedStyle(div).getPropertyValue("left")
-        );
-        console.log("CURRENT X", currentX);
-        const key = inputList[i].key;
-        let positionX = positions[inputList[i].key].x;
-        let positionY = positions[inputList[i].key].y;
-        const x = coordinateRef.current[key].x;
-        const y = coordinateRef.current[key].y;
-
-        let originalHeight = 0;
-        let originalWidth = 0;
-        // if (!objRef.current[i].isOriginal) {
-        //   objRef.current[i].isOriginal = true;
-        //   objRef.current[i].height = currentHeight;
-        //   objRef.current[i].width = currentWidth;
-
-        //   originalHeight = currentHeight;
-        //   originalWidth = currentWidth;
-        // } else {
-        //   originalHeight = objRef.current[i].height;
-        //   originalWidth = objRef.current[i].width;
-        // }
-
-        // offsetX += positionX - inputList[i].x;
-        // offsetY += positionY - inputList[i].y;
-
-        // get coordinates of opposite corner
-        let x_corner_scaled =
-          (inputList[i].x + originalWidth + offsetX) * scale;
-        let y_corner_scaled =
-          (inputList[i].y + originalHeight - offsetY) * scale;
-
-        // it was inputList[i].x
-        console.log("x: " + x + " y: " + y);
-        let x_scaled = (x + offsetX) * scale;
-        let y_scaled = (y - offsetY) * scale;
-        let newWidth = x_corner_scaled - x_scaled;
-        let newHeight = y_corner_scaled - y_scaled;
-        // console.log(x_scaled);
-        // scale the coordinates
-        // get the new height and width
-        div.style.bottom = "0px";
-        // have to fix the amount it pans and also when the mouse goes over the div.
-        div.style.left = "0px";
-        // div.style.width = `${50 * scale}px`;
-        // div.style.height = `${50 * scale}px`;
-        // div.style.width = `${originalWidth * scale}px`;
-        // div.style.height = `${originalHeight * scale}px`;
-
-        div.style.fontSize = `${1 * scale}em`;
-      }
-    }
-  }
-
-  // convert coordinates
-  function toScreenX(xTrue) {
-    return (xTrue + offsetX) * scale;
-  }
-  function toScreenY(yTrue) {
-    return (yTrue + offsetY) * scale;
-  }
-
-  function toTrueX(xScreen) {
-    return xScreen / scale - offsetX;
-  }
-  function toTrueY(yScreen) {
-    return yScreen / scale - offsetY;
-  }
-
-  function onMouseMove(event) {
-    const rect = canvas.getBoundingClientRect();
-
-    // get mouse position
-    cursorX = event.pageX - rect.left;
-    cursorY = event.pageY - rect.top;
-
-    const scaledX = toTrueX(cursorX);
-    const scaledY = toTrueY(cursorY);
-    const prevScaledX = toTrueX(prevCursorX);
-    const prevScaledY = toTrueY(prevCursorY);
-
-    if (leftMouseDown) {
-      console.log("entered");
-      // add the line to our drawing history
-      drawings.push({
-        x0: prevScaledX,
-        y0: prevScaledY,
-        x1: scaledX,
-        y1: scaledY,
-      });
-      // draw a line
-      drawLine(prevCursorX, prevCursorY, cursorX, cursorY);
-      offsetX += (cursorX - prevCursorX) / scale;
-      offsetY += (cursorY - prevCursorY) / scale;
-      // think the error is here that it is not accounting for something.
-      // ACTUALLY HAVE NO IDEA WHAT THIS IS
-      // for (let i = 0; i < divRefs.current.length; i++) {
-      //   let div = divRefs.current[i];
-
-      //   let element = div.getBoundingClientRect();
-      //   let board = boardRef.current.getBoundingClientRect();
-      //   let currentPosX = element.left - board.left;
-      //   let currentPosY = board.height - element.top;
-      //   if (div == null) {
-      //     break;
-      //   }
-      //   offsetX += (currentPosX - prevPosX) / scale;
-      //   offsetY += (currentPosY - prevPosY) / scale;
-      //   // console.log("pos y", currentPosY, prevPosY);
-
-      //   prevPosX = currentPosX;
-      //   prevPosY = currentPosY;
-      // }
-    }
-    if (rightMouseDown) {
-      // move the screen
-      offsetX += (cursorX - prevCursorX) / scale;
-      offsetY += (cursorY - prevCursorY) / scale;
-      // console.log("offset", offsetY);
-      sizeDiv();
-      redrawCanvas();
-    }
-    prevCursorX = cursorX;
-    prevCursorY = cursorY;
-  }
-
-  function onMouseDown(event) {
-    const rect = canvas.getBoundingClientRect();
-
-    // detect left clicks
-    if (event.button == 0) {
-      leftMouseDown = true;
-      rightMouseDown = false;
-    }
-    // detect right clicks
-    if (event.button == 2) {
-      rightMouseDown = true;
-      leftMouseDown = false;
-    }
-
-    // update the cursor coordinates
-    cursorX = event.pageX - rect.left;
-    cursorY = event.pageY - rect.top;
-    prevCursorX = event.pageX - rect.left;
-    prevCursorY = event.pageY - rect.top;
-
-    // set all the current positions of divs on mouse down.
-    // for (let i = 0; i < divRefs.current.length; i++) {
-    //   let div = divRefs.current[i];
-    //   if (div == null) {
-    //     break;
-    //   }
-    //   let element = div.getBoundingClientRect();
-    //   let board = boardRef.current.getBoundingClientRect();
-    //   let currentPosX = element.left - board.left;
-    //   let currentPosY = board.height - element.top;
-    //   prevPosX = currentPosX;
-    //   prevPosY = currentPosY;
-    // }
-  }
-
-  function onMouseUp() {
-    leftMouseDown = false;
-    rightMouseDown = false;
-  }
-
-  // const onMouseWheel = (event) => {
-  //   //event.preventDefault();
-  //   console.log("wheel");
-  //   const deltaY = event.deltaY;
-  //   const scaleAmount = -deltaY / 500;
-  //   scale = scale * (1 + scaleAmount);
-
-  //   sizeDiv();
-  //   // redrawCanvas();
-  // };
-
-  function drawLine(x0, y0, x1, y1) {
-    context.beginPath();
-    context.moveTo(x0, y0);
-    context.lineTo(x1, y1);
-    // context.strokeStyle = "#000";
-    // context.lineWidth = 2;
-    context.stroke();
-  }
-
-  const deleteNote = (key) => {
-    setInputList(inputList.filter((x) => x.key !== key));
-    const editor = quillRef.current.getEditor();
-    const text = inputList.find((x) => x.key === key).value;
-    const cursorIndex = editor.getText().lastIndexOf(text);
-    editor.deleteText(cursorIndex, text.length + 1);
-    // Create a new Range object with start and end position of 0
-    const range = new Range();
-    range.setStart(editor.root, 0);
-    range.setEnd(editor.root, 0);
-
-    editor.setSelection(range);
-  };
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -384,13 +161,19 @@ function TextEditor() {
       ]);
 
       const newNode = {
-        id: key,
         position: { x: 50, y: 50 },
         data: { label: input },
         type: "fourHandleNode",
       };
 
-      setNodes((prevState) => prevState.concat(newNode));
+      axios
+        .post("http://localhost:5000/saveNode", {
+          pageId: pageIdRef.current,
+          newNode: newNode,
+        })
+        .then((response) => {
+          // setNodes((prevState) => prevState.concat(response.data));
+        });
 
       // do not remember what this is for
       objRef.current.push({ isOriginal: false, height: 0, width: 0 });
@@ -425,8 +208,6 @@ function TextEditor() {
       // }
     }
   };
-
-  const [imageUrl, setImageUrl] = useState(null);
 
   async function handlePaste() {
     const items = await navigator.clipboard.read();
@@ -565,33 +346,49 @@ function TextEditor() {
       y: (event.clientY - boundingCanvas.top - offsetYValue) / zoomLevel,
     };
     console.log("zoom", offsetProperties[0], offsetXRef.current);
+    console.log(listLength);
+
     if (addingNode) {
-      let key = Math.random().toString();
-
-      // console.log(position);
-
       const newNode = {
-        id: key,
         position: position,
         data: { label: "" },
         type: "fourHandleNode",
       };
 
-      setNodes((prevState) => prevState.concat(newNode));
+      axios
+        .post("http://localhost:5000/saveNode", {
+          pageId: pageIdRef.current,
+          newNode: newNode,
+        })
+        .then((response) => {
+          console.log("RESPONSE", response.data);
+          const createdNode = response.data;
+          const newNode = {
+            id: createdNode.whiteboard_id.toString(),
+            type: createdNode.type,
+            data: { label: createdNode.text, color: "red" },
+            position: {
+              x: createdNode.x,
+              y: createdNode.y,
+            },
+          };
+          setNodes((prevState) => prevState.concat(newNode));
+        });
 
       setAddingNode(false);
     }
   };
 
-  const onMouseWheel = (event) => {
-    // alert("entered");
-    // console.log(event);
-    console.log("hurray");
-  };
-
   // will need to understand this eventually, also only works on backspace, so will have to add the delete button
   const onNodesDelete = useCallback(
     (deleted) => {
+      console.log("THIS IS DE", deleted[0].id);
+      const deletedId = deleted[0].id;
+      axios.delete("http://localhost:5000/deleteNode", {
+        data: {
+          deletedId: deletedId,
+        },
+      });
       setEdges(
         deleted.reduce((acc, node) => {
           const incomers = getIncomers(node, nodes, edges);

@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model edges {
+  id            Int     @id @default(autoincrement())
+  source        String?
+  target        String?
+  source_handle String?
+  target_handle String?
+  file_id       Int
+  files         files? @relation(fields: [file_id], references: [file_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_id")
+}
+
+model files {
+  file_id    Int          @id @default(autoincrement())
+  title      String       @db.VarChar(255)
+  body       String?
+  user_id    Int?
+  users      users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  whiteboard whiteboard[]
+  edges edges[]
+}
+
+model users {
+  user_id  Int     @id @default(autoincrement())
+  username String  @db.VarChar(50)
+  password String  @db.VarChar(255)
+  email    String  @unique @db.VarChar(255)
+  files    files[]
+}
+
+model whiteboard {
+  whiteboard_id Int       @id @default(autoincrement())
+  location      Decimal[] @db.Decimal
+  color         String?   @db.VarChar(7)
+  file_id       Int?
+  x             Decimal?  @db.Decimal
+  y             Decimal?  @db.Decimal
+  width         Decimal?  @db.Decimal
+  height        Decimal?  @db.Decimal
+  text          String?
+  files         files?    @relation(fields: [file_id], references: [file_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_id")
+  type          String?
+}

@@ -5,7 +5,6 @@ import "./fourHandleNode.css";
 function FourHandleNode({ data, selected }) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(data.label);
-  console.log(selected);
 
   const handleClick = () => {
     setIsEditing(true);
@@ -16,14 +15,17 @@ function FourHandleNode({ data, selected }) {
   };
 
   const handleChange = (event) => {
+    data.label = event.target.value;
     setValue(event.target.value);
   };
-
+  if (!data.color) {
+    data.color = "black";
+  }
   return (
     <div
       style={{
         background: "#fff",
-        border: `solid ${selected ? " 2px black" : "1px black"}`,
+        border: `solid ${selected ? "2px" : "1px"} ${data.color}`,
         borderRadius: 4,
         padding: 5,
         minWidth: 120,

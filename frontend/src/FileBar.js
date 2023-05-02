@@ -4,7 +4,6 @@ import "./fileBar.css";
 
 function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
-  let [listLength, setListLength] = useState(0);
   const [thisFile, setThisFile] = useState();
 
   const buttonContainerRef = useRef([]);
@@ -19,8 +18,7 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
       })
       .then((response) => {
         setFiles(response.data);
-        setListLength(response.data.length + 1);
-        // currently setting the firs file to be the default page
+        // currently setting the first file to be the default page
         setPageId(response.data[0].file_id);
         renderBody(response.data[0]);
         console.log("success");
@@ -31,14 +29,38 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
   }, []);
 
   const addNewFile = () => {
+    console.log("adding new file");
+
     const newFile = {
       title: "New Page",
       body: "",
-      file_id: listLength,
     };
-    setFiles((prevState) => [...prevState, newFile]);
-    renderBody(newFile);
-    setListLength(listLength + 1);
+    axios
+      .post("http://localhost:5000/private/addFile", newFile, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        setFiles((prevState) => [...prevState, response.data]);
+        renderBody(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const handleDelete = (id) => {
+    console.log("deleted");
+    const updatedItems = files.filter((file) => file.file_id !== id);
+    axios
+      .post(
+        "http://localhost:5000/private/deleteFile",
+        { id },
+        { withCredentials: true }
+      )
+      .then((response) => {
+        setFiles(updatedItems);
+        setPopUpMenu(false);
+      });
   };
 
   async function renderBody(file) {
@@ -55,13 +77,6 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
     //   const delta = editor.clipboard.convert(body);
     //   editor.setContents(delta);
   }
-
-  const handleDelete = (id) => {
-    console.log("deleted");
-    const updatedItems = files.filter((file) => file.file_id !== id);
-    setFiles(updatedItems);
-    setPopUpMenu(false);
-  };
 
   function PopUpMenu(id) {
     return (
