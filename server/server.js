@@ -40,7 +40,7 @@ app.post("/saveNode", async (req, res) => {
   try {
     const node = req.body.newNode;
     console.log(node);
-    const createdNode = await prisma.whiteboard.create({
+    const createdNode = await prisma.nodes.create({
       data: {
         x: node.position.x,
         y: node.position.y,
@@ -60,15 +60,29 @@ app.post("/saveNode", async (req, res) => {
 app.delete("/deleteNode", async (req, res) => {
   console.log(req.body);
   try {
-    const deletedNode = await prisma.whiteboard.delete({
+    const deletedNode = await prisma.nodes.delete({
       where: {
-        whiteboard_id: parseInt(req.body.deletedId),
+        node_id: parseInt(req.body.deletedId),
       },
     });
     res.status(200).json({ message: "Node deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error deleting node" });
+  }
+});
+
+app.delete("/deleteEdge", async (req, res) => {
+  console.log("THESE EDGES", req.body);
+  try {
+    await prisma.edges.delete({
+      where: {
+        id: req.body.edgeToDelete.id,
+      },
+    });
+    res.status(200).json({ message: "edge deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting edge" });
   }
 });
 
@@ -90,7 +104,7 @@ app.post("/savePost", (req, res) => {
 app.get("/fetchFileData", async (req, res) => {
   // this req.query looks like it can cause errors very easily
   console.log("ID", req.query.pageId);
-  const nodeData = await prisma.whiteboard.findMany({
+  const nodeData = await prisma.nodes.findMany({
     where: {
       file_id: parseInt(req.query.pageId),
     },
@@ -113,20 +127,21 @@ async function savePost(req) {
     },
   });
   const nodeArray = req.body.nodes;
-  for (let i = 0; i < nodeArray.length; i++) {
-    // console.log(nodeArray[i].data);
-    // console.log(nodeArray[i].position);
+  const edgeArray = req.body.edges;
 
+  console.log(edgeArray);
+
+  for (let i = 0; i < nodeArray.length; i++) {
     // check if node exists in current file
-    const existingNode = await prisma.whiteboard.findUnique({
+    const existingNode = await prisma.nodes.findUnique({
       where: {
-        whiteboard_id: parseInt(nodeArray[i].id),
+        node_id: parseInt(nodeArray[i].id),
       },
     });
     if (!existingNode) {
-      await prisma.whiteboard.create({
+      await prisma.nodes.create({
         data: {
-          whiteboard_id: parseInt(nodeArray[i].id),
+          node_id: parseInt(nodeArray[i].id),
           x: nodeArray[i].position.x,
           y: nodeArray[i].position.y,
           text: nodeArray[i].data.label,
@@ -138,8 +153,8 @@ async function savePost(req) {
         },
       });
     } else {
-      await prisma.whiteboard.update({
-        where: { whiteboard_id: parseInt(nodeArray[i].id) },
+      await prisma.nodes.update({
+        where: { node_id: parseInt(nodeArray[i].id) },
         data: {
           x: nodeArray[i].position.x,
           y: nodeArray[i].position.y,
@@ -153,15 +168,42 @@ async function savePost(req) {
       });
     }
   }
-  // if new node, create new node
 
-  // if existing node, update node
-  // if new edge, create new edge
-  // if existing edge, update edge
-  // if new file, create new file
+  for (let i = 0; i < edgeArray.length; i++) {
+    console.log(edgeArray[i]);
+    const existingEdge = await prisma.edges.findUnique({
+      where: {
+        id: edgeArray[i].id,
+      },
+    });
+
+    if (!existingEdge) {
+      await prisma.edges.create({
+        data: {
+          id: edgeArray[i].id,
+          source: edgeArray[i].source,
+          target: edgeArray[i].target,
+          source_handle: edgeArray[i].sourceHandle,
+          target_handle: edgeArray[i].targetHandle,
+          file_id: req.body.id,
+        },
+      });
+    } else {
+      await prisma.edges.update({
+        where: { id: edgeArray[i].id },
+        data: {
+          id: edgeArray[i].id,
+          source: edgeArray[i].source,
+          target: edgeArray[i].target,
+          source_handle: edgeArray[i].sourceHandle,
+          target_handle: edgeArray[i].targetHandle,
+          file_id: req.body.id,
+        },
+      });
+    }
+  }
+
   // if existing file, update file
-  // const allUsers = await prisma.users.findMany();
-  // console.log(allUsers);
 }
 
 app.listen(port, hostname, () => {

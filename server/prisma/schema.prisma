@@ -8,7 +8,7 @@ datasource db {
 }
 
 model edges {
-  id            Int     @id @default(autoincrement())
+  id            String     @id
   source        String?
   target        String?
   source_handle String?
@@ -23,8 +23,9 @@ model files {
   body       String?
   user_id    Int?
   users      users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
-  whiteboard whiteboard[]
+  nodes nodes[]
   edges edges[]
+  lastAccessed DateTime?
 }
 
 model users {
@@ -35,8 +36,8 @@ model users {
   files    files[]
 }
 
-model whiteboard {
-  whiteboard_id Int       @id @default(autoincrement())
+model nodes {
+  node_id       Int       @id @default(autoincrement())
   location      Decimal[] @db.Decimal
   color         String?   @db.VarChar(7)
   file_id       Int?

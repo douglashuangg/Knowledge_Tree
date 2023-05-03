@@ -102,7 +102,6 @@ function TextEditor() {
 
   useEffect(() => {
     if (pageIdRef.current) {
-      console.log("pageidref", pageIdRef.current);
       axios
         .get(fetchDataUrl, {
           params: {
@@ -112,21 +111,29 @@ function TextEditor() {
         .then((response) => {
           const savedNodes = response.data.nodeData.map((file) => {
             return {
-              id: file.whiteboard_id.toString(),
+              id: file.node_id.toString(),
               type: file.type,
               data: { label: file.text, color: "red" },
               position: {
-                x: file.x,
-                y: file.y,
+                x: parseInt(file.x),
+                y: parseInt(file.y),
                 height: file.height,
                 width: file.width,
               },
             };
           });
+
+          const savedEdges = response.data.edgeData.map((edge) => {
+            return {
+              id: edge.id.toString(),
+              source: edge.source,
+              target: edge.target,
+              sourceHandle: edge.source_handle,
+              targetHandle: edge.target_handle,
+            };
+          });
           setNodes(savedNodes);
-          setEdges((prevState) => prevState.concat(response.data.edgeData));
-          console.log(response.data.nodeData);
-          console.log("success");
+          setEdges(savedEdges);
         })
         .catch((error) => {
           console.log(error);
@@ -297,9 +304,6 @@ function TextEditor() {
       // console.log(`[${Date.now()}] Data:`, data);
       // make sure there is a pageId before saving to database
       if (old !== data && pageId) {
-        console.log("sent");
-        console.log(nodes);
-        console.log(edges);
         sendData({
           doc: data,
           id: pageId,
@@ -323,7 +327,10 @@ function TextEditor() {
   }
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params) => {
+      setEdges((eds) => addEdge(params, eds));
+      console.log("edge", params);
+    },
     [setEdges]
   );
 
@@ -342,12 +349,18 @@ function TextEditor() {
     const offsetYValue = offsetProperties[1];
     const zoomLevel = offsetProperties[2];
     const position = {
-      x: (event.clientX - boundingCanvas.left - offsetXValue) / zoomLevel,
-      y: (event.clientY - boundingCanvas.top - offsetYValue) / zoomLevel,
+      x: (
+        (event.clientX - boundingCanvas.left - offsetXValue) /
+        zoomLevel
+      ).toFixed(2),
+      y: (
+        (event.clientY - boundingCanvas.top - offsetYValue) /
+        zoomLevel
+      ).toFixed(2),
     };
     console.log("zoom", offsetProperties[0], offsetXRef.current);
     console.log(listLength);
-
+    console.log("X", position.x);
     if (addingNode) {
       const newNode = {
         position: position,
@@ -363,13 +376,14 @@ function TextEditor() {
         .then((response) => {
           console.log("RESPONSE", response.data);
           const createdNode = response.data;
+          console.log("created", createdNode.x, createdNode.y);
           const newNode = {
-            id: createdNode.whiteboard_id.toString(),
+            id: createdNode.node_id.toString(),
             type: createdNode.type,
             data: { label: createdNode.text, color: "red" },
             position: {
-              x: createdNode.x,
-              y: createdNode.y,
+              x: parseInt(createdNode.x),
+              y: parseInt(createdNode.y),
             },
           };
           setNodes((prevState) => prevState.concat(newNode));
@@ -382,7 +396,6 @@ function TextEditor() {
   // will need to understand this eventually, also only works on backspace, so will have to add the delete button
   const onNodesDelete = useCallback(
     (deleted) => {
-      console.log("THIS IS DE", deleted[0].id);
       const deletedId = deleted[0].id;
       axios.delete("http://localhost:5000/deleteNode", {
         data: {
@@ -394,7 +407,9 @@ function TextEditor() {
           const incomers = getIncomers(node, nodes, edges);
           const outgoers = getOutgoers(node, nodes, edges);
           const connectedEdges = getConnectedEdges([node], edges);
+          console.log("CONNECTED", connectedEdges);
 
+          // axios statement here.
           const remainingEdges = acc.filter(
             (edge) => !connectedEdges.includes(edge)
           );
@@ -413,6 +428,34 @@ function TextEditor() {
     },
     [nodes, edges]
   );
+
+  const test = () => {
+    const newNode = {
+      id: "900",
+      type: "fourHandleNode",
+      data: { label: "test", color: "red" },
+      position: {
+        x: 100,
+        y: 100,
+      },
+    };
+    setNodes((prev) => prev.concat(newNode));
+  };
+
+  const onEdgesDelete = (edgeToDelete) => {
+    axios
+      .delete("http://localhost:5000/deleteEdge", {
+        data: {
+          edgeToDelete: edgeToDelete[0],
+        },
+      })
+      .then((response) => {
+        console.log("RESPONSE", response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   return (
     <>
@@ -436,6 +479,7 @@ function TextEditor() {
         <div ref={boardRef} className="canvas_editor">
           <button onClick={addNodeClicked}>Add Node</button>
           <button onClick={handlePaste}>Paste Image</button>
+          <button onClick={test}>Click it</button>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -448,6 +492,7 @@ function TextEditor() {
             nodeTypes={memoizedNodes}
             ref={reactFlowRef}
             onNodesDelete={onNodesDelete}
+            onEdgesDelete={onEdgesDelete}
           />
 
           <canvas className="canvas" ref={canvasRef}></canvas>
