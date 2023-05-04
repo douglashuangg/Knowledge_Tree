@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import axios from "axios";
 import "./fileBar.css";
+import MenuIcon from "@mui/icons-material/Menu";
 
 function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
+  const [isSideBarVisible, setIsSideBarVisible] = useState(true);
 
   const buttonContainerRef = useRef([]);
 
@@ -89,7 +91,9 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
           event.stopPropagation();
         }}
       >
-        <button onMouseDown={() => handleDelete(id)}>Delete</button>
+        <button className="button_delete" onMouseDown={() => handleDelete(id)}>
+          Delete
+        </button>
       </ul>
     );
   }
@@ -127,40 +131,56 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
     setThisFile(id);
     setPopUpMenu(!popUpMenu);
   };
+  const collapseSideBar = () => {
+    setIsSideBarVisible(!isSideBarVisible);
+  };
 
   return (
-    <div className="sidenav">
-      <button className="collapse_button">Collapse</button>
-      <h2>Files</h2>
+    <>
+      {isSideBarVisible ? (
+        <div className="sidenav">
+          <button onClick={collapseSideBar} className="collapse_button">
+            <MenuIcon style={{ fontSize: "2rem" }} />
+          </button>
+          <h2>Files</h2>
 
-      {files.map((file, index) => {
-        return (
-          <div className="file_group" onClick={() => renderBody(file)}>
-            <div className="file_element">
-              <p>{file.title}</p>
-            </div>
-            <div
-              className="button_container"
-              ref={(ref) => (buttonContainerRef.current[index] = ref)}
-            >
-              <button
-                className="button_file_menu"
-                onClick={(event) => handleMenu(event, file.file_id, index)}
-              >
-                ...
-              </button>
-              {file.file_id}
-              {popUpMenu && file.file_id == thisFile && PopUpMenu(file.file_id)}
-            </div>
+          {files.map((file, index) => {
+            return (
+              <div className="file_group" onClick={() => renderBody(file)}>
+                <div className="file_element">
+                  <p>{file.title}</p>
+                </div>
+                <div
+                  className="button_container"
+                  ref={(ref) => (buttonContainerRef.current[index] = ref)}
+                >
+                  <button
+                    className="button_file_menu"
+                    onClick={(event) => handleMenu(event, file.file_id, index)}
+                  >
+                    ...
+                  </button>
+                  {popUpMenu &&
+                    file.file_id == thisFile &&
+                    PopUpMenu(file.file_id)}
+                </div>
+              </div>
+            );
+          })}
+          <div className="file_element--new">
+            <button onClick={addNewFile} className="button_add_map">
+              + New Map
+            </button>
           </div>
-        );
-      })}
-      <div className="file_element--new">
-        <button onClick={addNewFile} className="button_add_map">
-          + New Map
-        </button>
-      </div>
-    </div>
+        </div>
+      ) : (
+        <>
+          <button className="uncollapse_button" onClick={collapseSideBar}>
+            <MenuIcon style={{ fontSize: "2rem" }} />
+          </button>
+        </>
+      )}
+    </>
   );
 }
 

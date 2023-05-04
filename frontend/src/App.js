@@ -41,6 +41,12 @@ function App() {
       <nav>
         <ul className="navbar">
           <li>
+            <Link className="nav_item" to={`/explore`}>
+              Explore
+            </Link>
+          </li>
+          <li className="nav_item">Your Brain</li>
+          <li>
             {loggedIn ? (
               <Link onClick={handleLogout} to={`#`}>
                 Log out
@@ -49,10 +55,6 @@ function App() {
               <Link to={`/login`}>Log in</Link>
             )}
           </li>
-          <li>
-            <Link to={`/explore`}>Explore</Link>
-          </li>
-          <li>Your Brain</li>
         </ul>
       </nav>
       {/* <LandingPage /> */}

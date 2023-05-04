@@ -3,14 +3,41 @@ import "./landingPage.css";
 
 function LandingPage() {
   return (
-    <>
-      <h1 className="title">Redwood</h1>
-      <p className="description">
-        Tired of learning tidbits of information and never seeing the big
-        picture? Finally connect it all together.
-      </p>
+    <div className="landing_container">
+      <h1>Redwood</h1>
+      <div className="landing_centre">
+        <h1 className="title">Connecting all the things you learn together</h1>
+        <p className="description">
+          Tired of learning tidbits of information and never seeing the big
+          picture? Redwood is the mindmapping tool for education.
+        </p>
+        <button className="button_getStarted">Get Started</button>
+      </div>
+      <div style={{ height: "50rem", border: "5px solid purple" }}>
+        Insert Image Here*
+      </div>
+      <footer>
+        <div class="footer_container">
+          <div class="footer-content">
+            <p>&copy; 2023 Redwood</p>
+            <ul class="footer-links">
+              <li>
+                <a className="footer_link" href="#">
+                  Home
+                </a>
+              </li>
+              <li>
+                <a className="footer_link" href="#">
+                  About
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </footer>
+
       {/* <div>Insert image here</div> */}
-    </>
+    </div>
   );
 }
 

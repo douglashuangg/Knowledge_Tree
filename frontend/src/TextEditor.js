@@ -16,6 +16,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import fourHandleNode from "./fourHandleNode";
 import imageNode from "./imageNode";
+import CropSquareIcon from "@mui/icons-material/CropSquare";
 
 const nodeTypes = {
   fourHandleNode: fourHandleNode,
@@ -66,7 +67,7 @@ function TextEditor() {
   useEffect(() => {
     canvas = canvasRef.current;
     board = boardRef.current;
-    context = canvas.getContext("2d");
+    // context = canvas.getContext("2d");
     // reactFlow = reactFlowRef.current;
     // reactFlow.addEventListener("wheel", onMouseWheel, false);
     // Mouse Event Handlers
@@ -312,7 +313,7 @@ function TextEditor() {
         });
         old = data;
       }
-    }, 2000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [nodes, edges]);
@@ -429,19 +430,6 @@ function TextEditor() {
     [nodes, edges]
   );
 
-  const test = () => {
-    const newNode = {
-      id: "900",
-      type: "fourHandleNode",
-      data: { label: "test", color: "red" },
-      position: {
-        x: 100,
-        y: 100,
-      },
-    };
-    setNodes((prev) => prev.concat(newNode));
-  };
-
   const onEdgesDelete = (edgeToDelete) => {
     axios
       .delete("http://localhost:5000/deleteEdge", {
@@ -466,7 +454,7 @@ function TextEditor() {
         setFiles={setFiles}
         pageIdRef={pageIdRef}
       />
-      <button onClick={sendData}>CLICK ME</button>
+
       <div className="parent-div">
         <div className="text-editor">
           <ReactQuill
@@ -474,12 +462,20 @@ function TextEditor() {
             theme="snow"
             onChange={handleChange}
             onKeyDown={handleKeyPress}
+            className="quill_editor"
           />
         </div>
+
         <div ref={boardRef} className="canvas_editor">
-          <button onClick={addNodeClicked}>Add Node</button>
-          <button onClick={handlePaste}>Paste Image</button>
-          <button onClick={test}>Click it</button>
+          <div className="node_menuBar">
+            <button className="button_addNode" onClick={addNodeClicked}>
+              <CropSquareIcon />
+            </button>
+            <div className="hidden_addNode">Add Node</div>
+            <button style={{ width: "2.5rem" }} onClick={handlePaste}>
+              Paste Image
+            </button>
+          </div>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -494,8 +490,6 @@ function TextEditor() {
             onNodesDelete={onNodesDelete}
             onEdgesDelete={onEdgesDelete}
           />
-
-          <canvas className="canvas" ref={canvasRef}></canvas>
         </div>
       </div>
     </>
