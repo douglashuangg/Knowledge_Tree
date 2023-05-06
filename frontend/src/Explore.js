@@ -4,6 +4,7 @@ function Explore() {
   return (
     <>
       <h1>Explore</h1>
+      <p>Currently Under Construction 🚧</p>
     </>
   );
 }

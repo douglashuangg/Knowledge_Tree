@@ -17,10 +17,10 @@ function LandingPage() {
         Insert Image Here*
       </div>
       <footer>
-        <div class="footer_container">
-          <div class="footer-content">
+        <div className="footer_container">
+          <div className="footer-content">
             <p>&copy; 2023 Redwood</p>
-            <ul class="footer-links">
+            <ul className="footer-links">
               <li>
                 <a className="footer_link" href="#">
                   Home

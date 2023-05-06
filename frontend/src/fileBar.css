@@ -6,6 +6,7 @@
   float: left;
   padding: 1rem;
   color: white;
+  position: relative;
 }
 
 .collapse_button {
@@ -83,7 +84,14 @@
   z-index: 1;
   min-width: 10rem;
   color: black;
-  border-radius: 0.4rem;
+  border-radius: 0.3rem;
+  width: 12rem;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
 }
 
 .button_file_menu {
@@ -106,6 +114,7 @@
   align-items: center;
   justify-content: space-between;
   border-radius: 0.4rem;
+  z-index: 5000;
 }
 
 .file_group:hover {
@@ -129,4 +138,19 @@
 .button_delete:hover {
   cursor: pointer;
   background-color: rgb(179, 179, 179);
+}
+
+.div_scrollable {
+  height: 80vh;
+  width: 16.5rem;
+  overflow: hidden auto;
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cdcbd0;
 }

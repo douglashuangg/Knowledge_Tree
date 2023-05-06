@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import axios from "axios";
 import "./fileBar.css";
 import MenuIcon from "@mui/icons-material/Menu";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
+function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
   const [isSideBarVisible, setIsSideBarVisible] = useState(true);
@@ -19,11 +20,11 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
         withCredentials: true,
       })
       .then((response) => {
+        filesRef.current = response.data;
         setFiles(response.data);
         // currently setting the first file to be the default page
         setPageId(response.data[0].file_id);
         renderBody(response.data[0]);
-        console.log("success");
       })
       .catch((error) => {
         console.log(error);
@@ -34,7 +35,7 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
     console.log("adding new file");
 
     const newFile = {
-      title: "New Page",
+      title: "Untitled",
       body: "",
     };
     axios
@@ -43,6 +44,7 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
       })
       .then((response) => {
         setFiles((prevState) => [...prevState, response.data]);
+        filesRef.current = [...filesRef.current, response.data];
         renderBody(response.data);
       })
       .catch((error) => {
@@ -61,6 +63,7 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
       )
       .then((response) => {
         setFiles(updatedItems);
+        filesRef.current = updatedItems;
         setPopUpMenu(false);
       });
   };
@@ -71,7 +74,9 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
 
     const editor = quill.current.getEditor();
     // await editor.setContents([{ insert: "\n" }]);
-    editor.setText(file.body);
+    console.log("body", file.body);
+    const delta = editor.clipboard.convert(file.body);
+    editor.setContents(delta);
     editor.setSelection(editor.getLength(), 0);
 
     // editor.setText("");
@@ -144,33 +149,44 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef }) {
           </button>
           <h2>Files</h2>
 
-          {files.map((file, index) => {
-            return (
-              <div className="file_group" onClick={() => renderBody(file)}>
-                <div className="file_element">
-                  <p>{file.title}</p>
-                </div>
-                <div
-                  className="button_container"
-                  ref={(ref) => (buttonContainerRef.current[index] = ref)}
-                >
-                  <button
-                    className="button_file_menu"
-                    onClick={(event) => handleMenu(event, file.file_id, index)}
+          <div className="div_scrollable">
+            {files.map((file, index) => {
+              return (
+                <div className="file_group" onClick={() => renderBody(file)}>
+                  <div className="file_element">
+                    <p>{file.title}</p>
+                  </div>
+
+                  <div
+                    className="button_container"
+                    ref={(ref) => (buttonContainerRef.current[index] = ref)}
                   >
-                    ...
-                  </button>
+                    {/* <button
+                      className="button_file_menu"
+                      onClick={(event) =>
+                        handleMenu(event, file.file_id, index)
+                      }
+                    >
+                      ...
+                    </button> */}
+                    <button
+                      className="button_file_menu"
+                      onClick={() => handleDelete(file.file_id)}
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </div>
                   {popUpMenu &&
                     file.file_id == thisFile &&
                     PopUpMenu(file.file_id)}
                 </div>
-              </div>
-            );
-          })}
-          <div className="file_element--new">
-            <button onClick={addNewFile} className="button_add_map">
-              + New Map
-            </button>
+              );
+            })}
+            <div className="file_element--new">
+              <button onClick={addNewFile} className="button_add_map">
+                + New Map
+              </button>
+            </div>
           </div>
         </div>
       ) : (

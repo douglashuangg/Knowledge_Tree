@@ -27,10 +27,10 @@ router.get("/fetchFiles", checkAuth, async (req, res) => {
     });
     await client.connect();
     const result = await client.query(
-      "SELECT * from files WHERE user_id = $1",
+      "SELECT * from files WHERE user_id = $1 order by FILE_ID ASC",
       [req.user.id]
     );
-    console.log(result.rows);
+    console.log(result.rows.sort());
     await client.end();
     res.json(result.rows);
   } catch (error) {

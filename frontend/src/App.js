@@ -9,6 +9,8 @@ import "./app.css";
 function App() {
   const url = "http://localhost:5000/private";
   const [loggedIn, setLoggedIn] = useState();
+  const [loading, setLoading] = useState(true);
+
   function handleLogout() {
     const logoutUrl = "http://localhost:5000/auth/logout";
     axios.get(logoutUrl, { withCredentials: true }).then((response) => {
@@ -23,12 +25,19 @@ function App() {
       })
       .then((response) => {
         setLoggedIn(response.data.loggedIn);
+        setLoading(false);
         console.log("logged in", response.data.loggedIn);
       })
       .catch((error) => {
         console.log(error);
+        setLoading(false);
       });
   }, []);
+
+  if (loading) {
+    return <h1>Loading...</h1>;
+  }
+
   return (
     <>
       {loggedIn ? (
