@@ -382,14 +382,16 @@ function TextEditor() {
     const offsetYValue = offsetProperties[1];
     const zoomLevel = offsetProperties[2];
     const position = {
-      x: (
-        (event.clientX - boundingCanvas.left - offsetXValue) /
-        zoomLevel
-      ).toFixed(2),
-      y: (
-        (event.clientY - boundingCanvas.top - offsetYValue) /
-        zoomLevel
-      ).toFixed(2),
+      x:
+        (
+          (event.clientX - boundingCanvas.left - offsetXValue) /
+          zoomLevel
+        ).toFixed(2) - 60,
+      y:
+        (
+          (event.clientY - boundingCanvas.top - offsetYValue) /
+          zoomLevel
+        ).toFixed(2) - 50,
     };
     setMousePosition(position);
     return position;
@@ -405,6 +407,7 @@ function TextEditor() {
         position: position,
         data: { label: "", color: "black" },
         type: "fourHandleNode",
+        height: 53,
       };
 
       axios
@@ -420,11 +423,18 @@ function TextEditor() {
           const newNode = {
             id: createdNode.node_id.toString(),
             type: createdNode.type,
-            data: { label: createdNode.text, color: createdNode.color },
+            data: {
+              label: createdNode.text,
+              color: createdNode.color,
+              justCreated: true,
+            },
             position: {
               x: parseInt(createdNode.x),
               y: parseInt(createdNode.y),
             },
+            height: 53,
+            width: createdNode.width,
+            selected: true,
           };
           setNodes((prevState) => prevState.concat(newNode));
         });
@@ -483,14 +493,6 @@ function TextEditor() {
         console.log(error);
       });
   };
-
-  // useEffect(() => {
-  //   document.addEventListener("keydown", handleCtrlV);
-
-  //   return () => {
-  //     document.removeEventListener("keydown", handleCtrlV)
-  //   }
-  // })
 
   return (
     <>

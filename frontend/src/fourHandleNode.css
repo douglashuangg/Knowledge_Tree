@@ -14,7 +14,25 @@
   border: 1px solid rgb(140, 140, 140);
   border-radius: 0.3rem;
   width: 8rem;
-  position: absolute;
-  margin-top: 4rem;
+  /* position: absolute; */
+  margin-top: 4.5rem;
   background-color: rgb(245, 243, 243);
+}
+
+.div_colorOption {
+  border-radius: 50%;
+  /* border: 1px solid black; */
+  height: 20px;
+  width: 20px;
+  cursor: pointer;
+  margin: 1px;
+}
+
+.div_colorOptionMenu {
+  background-color: rgb(245, 243, 243);
+  height: 1.5rem;
+  border-radius: 0.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0.2rem 0 0 0;
 }

@@ -3,52 +3,141 @@ import { Handle, Position } from "reactflow";
 import "./fourHandleNode.css";
 
 function FourHandleNode({ data, selected }) {
-  const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(data.label);
   const [color, setColor] = useState(data.color);
-  const textAreaRef = useRef(null);
+  const [showColorMenu, setShowColorMenu] = useState(false);
+  const divRef = useRef(null);
 
-  const handleClick = () => {
-    setIsEditing(true);
+  // let's see if this way of adding cursor works
+  useEffect(() => {
+    // if (data.justCreated != null && data.justCreated) {
+    // divRef.current.focus();
+    // divRef.current.contentEditable = true;
+    data.justCreated = false;
+    // console.log(showColorMenu);
+    // }
+    if (!selected) {
+      setShowColorMenu(false);
+      console.log("unselected");
+    }
+  });
+
+  //unselect make it not editable.
+  const handleClick = (event) => {
+    event.target.contentEditable = true;
+    event.target.focus();
   };
 
-  const handleBlur = () => {
-    setIsEditing(false);
+  const handleBlur = (event) => {
+    alert("blur");
+    setShowColorMenu(false);
+    event.target.contentEditable = false;
+    selected = false;
   };
 
   const handleChange = (event) => {
-    data.label = event.target.value;
-    setValue(event.target.value);
+    console.log("the value is", event);
+    data.label = event.target.innerHTML;
+    // setValue(event.target.innerHTML);
     console.log("Data", data);
   };
-  // if (!data.color) {
-  //   data.color = "black";
-  // }
-  const handleColorChange = (event) => {
-    console.log("the color is", data.color);
-    data.color = event.target.value;
-    setColor(event.target.value);
-    console.log("Data", data.color);
+
+  const handleColorChange = (colorValue) => {
+    // data.color = event.target.value;
+    data.color = colorValue;
+    setColor(colorValue);
   };
 
-  const handleTextAreaFocus = (event) => {
-    const length = event.target.value.length;
-    event.target.setSelectionRange(length, length);
+  // const handleTextAreaFocus = (event) => {
+  //   const length = event.target.value.length;
+  //   event.target.setSelectionRange(length, length);
+  // };
+
+  const toggleColorSelector = () => {
+    setShowColorMenu(!showColorMenu);
+  };
+
+  const handleDivFocus = (event) => {
+    // how does this work???
+    const target = event.target;
+    const range = document.createRange();
+    range.selectNodeContents(target);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const handleSelect = () => {
+    selected = !selected;
+    console.log("HIII");
   };
 
   return (
     <div
-    //  style={{ width: 150 }}
+      //  style={{ width: 150 }}
+      onSelect={handleSelect}
     >
       {selected ? (
-        <div className="node_editMenu">
-          <input
-            type="color"
-            defaultValue={color}
-            onInput={handleColorChange}
-          />
-        </div>
+        <>
+          <div style={{ position: "absolute" }}>
+            <div className="node_editMenu">
+              {/* <input
+                type="color"
+                defaultValue={color}
+                onInput={handleColorChange}
+              /> */}
+              <div
+                style={{
+                  margin: "4px",
+                  borderRadius: "50%",
+                  backgroundColor: `${color}`,
+                  border: `1px solid ${color}`,
+                  height: 25,
+                  width: 25,
+                  cursor: "pointer",
+                }}
+                onClick={toggleColorSelector}
+              ></div>
+            </div>
+            {showColorMenu && selected ? (
+              <div className="div_colorOptionMenu">
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#F51414" }}
+                  onClick={() => handleColorChange("#F51414")}
+                ></div>
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#576BCB" }}
+                  onClick={() => handleColorChange("#576BCB")}
+                ></div>
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#35A650" }}
+                  onClick={() => handleColorChange("#35A650")}
+                ></div>
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#FDEC08" }}
+                  onClick={() => handleColorChange("#FDEC08")}
+                ></div>
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#FF6600" }}
+                  onClick={() => handleColorChange("#FF6600")}
+                ></div>
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#856651" }}
+                  onClick={() => handleColorChange("#856651")}
+                ></div>
+              </div>
+            ) : null}
+          </div>
+        </>
       ) : null}
+
       <div
         style={{
           background: "#fff",
@@ -56,6 +145,7 @@ function FourHandleNode({ data, selected }) {
           borderRadius: 4,
           padding: 5,
           minWidth: 120,
+          height: 53,
           // width: 120,
           display: "flex",
           flexDirection: "column",
@@ -89,28 +179,23 @@ function FourHandleNode({ data, selected }) {
           style={{ background: "black" }}
           id="left"
         />
-
-        {!isEditing ? (
-          <div
-            style={{ padding: "10px", width: "100%" }}
-            onDoubleClick={handleClick}
-          >
-            {value}
-            <img src={data.imageUrl} />
-          </div>
-        ) : (
-          <textarea
-            value={value}
-            ref={textAreaRef}
-            id="text"
-            name="text"
-            className="nodrag"
-            onBlur={handleBlur}
-            onChange={handleChange}
-            autoFocus
-            onFocus={handleTextAreaFocus}
-          />
-        )}
+        <div
+          ref={divRef}
+          style={{
+            padding: "10px",
+            width: "100%",
+            border: "none",
+            outline: "0px solid transparent",
+            pointerEvents: "auto",
+          }}
+          onDoubleClick={handleClick}
+          onFocus={handleDivFocus}
+          onBlur={handleBlur}
+          onInput={handleChange}
+        >
+          {value}
+          {/* <img src={data.imageUrl} /> */}
+        </div>
       </div>
     </div>
   );
