@@ -72,10 +72,11 @@ body {
 .hidden_addNode {
   position: absolute;
   margin-left: 3.2rem;
-  background-color: rgb(243, 241, 241);
+  background-color: #f3f1f1;
   padding: 0.3rem;
   border-radius: 0.4rem;
   display: none;
+  z-index: 1;
 }
 
 .button_addNode:hover {
@@ -88,6 +89,7 @@ body {
 
 .button_addNode {
   width: 2.5rem;
+  border: solid 1px rgb(211, 211, 211);
 }
 
 .node_menuBar {

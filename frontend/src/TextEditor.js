@@ -371,7 +371,7 @@ function TextEditor() {
     // change the shape of the mouse
     // get position of the mouse
     // where the mouse is clicked, add a node
-    setAddingNode(true);
+    setAddingNode(!addingNode);
   };
 
   const getMousePosition = (event) => {
@@ -521,7 +521,13 @@ function TextEditor() {
           className="canvas_editor"
         >
           <div className="node_menuBar">
-            <button className="button_addNode" onClick={addNodeClicked}>
+            <button
+              className="button_addNode"
+              style={{
+                backgroundColor: addingNode ? "#b5b2b2" : "#f3f1f1",
+              }}
+              onClick={addNodeClicked}
+            >
               <CropSquareIcon />
             </button>
             <div className="hidden_addNode">Add Node</div>

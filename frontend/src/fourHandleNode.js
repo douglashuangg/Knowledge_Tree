@@ -29,7 +29,6 @@ function FourHandleNode({ data, selected }) {
   };
 
   const handleBlur = (event) => {
-    alert("blur");
     setShowColorMenu(false);
     event.target.contentEditable = false;
     selected = false;
@@ -122,15 +121,20 @@ function FourHandleNode({ data, selected }) {
                   style={{ backgroundColor: "#FDEC08" }}
                   onClick={() => handleColorChange("#FDEC08")}
                 ></div>
-                <div
+                {/* <div
                   className="div_colorOption"
                   style={{ backgroundColor: "#FF6600" }}
                   onClick={() => handleColorChange("#FF6600")}
-                ></div>
+                ></div> */}
                 <div
                   className="div_colorOption"
                   style={{ backgroundColor: "#856651" }}
                   onClick={() => handleColorChange("#856651")}
+                ></div>
+                <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#000" }}
+                  onClick={() => handleColorChange("#000")}
                 ></div>
               </div>
             ) : null}

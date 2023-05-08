@@ -54,18 +54,25 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
 
   const handleDelete = (id) => {
     console.log("deleted");
-    const updatedItems = files.filter((file) => file.file_id !== id);
-    axios
-      .post(
-        "http://localhost:5000/private/deleteFile",
-        { id },
-        { withCredentials: true }
-      )
-      .then((response) => {
-        setFiles(updatedItems);
-        filesRef.current = updatedItems;
-        setPopUpMenu(false);
-      });
+    const confirmation = window.confirm(
+      "Are you sure you want to delete this file? This action cannot be undone."
+    );
+    if (confirmation) {
+      const index = files.findIndex((file) => file.file_id === id);
+      const updatedItems = files.filter((file) => file.file_id !== id);
+      axios
+        .post(
+          "http://localhost:5000/private/deleteFile",
+          { id },
+          { withCredentials: true }
+        )
+        .then((response) => {
+          setFiles(updatedItems);
+          filesRef.current = updatedItems;
+          // pageIdRef.current = index;
+          setPopUpMenu(false);
+        });
+    }
   };
 
   async function renderBody(file) {
@@ -152,7 +159,16 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
           <div className="div_scrollable">
             {files.map((file, index) => {
               return (
-                <div className="file_group" onClick={() => renderBody(file)}>
+                <div
+                  className="file_group"
+                  onClick={() => renderBody(file)}
+                  style={{
+                    backgroundColor:
+                      file.file_id === pageIdRef.current
+                        ? "#3b3f50"
+                        : "#1e212a",
+                  }}
+                >
                   <div className="file_element">
                     <p>{file.title}</p>
                   </div>

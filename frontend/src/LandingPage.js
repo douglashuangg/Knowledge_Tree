@@ -31,6 +31,11 @@ function LandingPage() {
                   About
                 </a>
               </li>
+              <li>
+                <a className="footer_link" href="#">
+                  Security
+                </a>
+              </li>
             </ul>
           </div>
         </div>

@@ -8,6 +8,7 @@ const { privateRoutes } = require("./routes/private.js");
 const authRoutes = require("./routes/auth.js");
 const { PrismaClient } = require("@prisma/client");
 const AWS = require("aws-sdk");
+const crypto = require("crypto");
 
 dotenv.config();
 
@@ -49,6 +50,43 @@ sts.assumeRole(assumeRoleParams, function (err, data) {
 });
 
 const prisma = new PrismaClient();
+
+// seret hash for encryption
+const key = crypto
+  .createHash("sha512")
+  .update(process.env.SECRET_KEY)
+  .digest("hex")
+  .substring(0, 32);
+
+const encryptionIV = crypto
+  .createHash("sha256")
+  .update(process.env.SECRET_IV)
+  .digest("hex")
+  .substring(0, 16);
+
+function encryptData(data) {
+  const cipher = crypto.createCipheriv(
+    process.env.ENCRYPTION_METHOD,
+    key,
+    encryptionIV
+  );
+  return Buffer.from(
+    cipher.update(data, "utf8", "hex") + cipher.final("hex")
+  ).toString("base64");
+}
+
+function decryptData(encryptedData) {
+  const buff = Buffer.from(encryptedData, "base64");
+  const decipher = crypto.createDecipheriv(
+    process.env.ENCRYPTION_METHOD,
+    key,
+    encryptionIV
+  );
+  return (
+    decipher.update(buff.toString("utf8"), "hex", "utf8") +
+    decipher.final("utf8")
+  );
+}
 
 // cors middleware
 app.use(
@@ -170,6 +208,10 @@ app.get("/fetchFileData", async (req, res) => {
       file_id: parseInt(req.query.pageId),
     },
   });
+
+  for (let data of nodeData) {
+    data.text = decryptData(data.text);
+  }
   // console.log("nodes", nodeData);
 
   const edgeData = await prisma.edges.findMany({
@@ -203,6 +245,7 @@ async function savePost(req) {
         node_id: parseInt(nodeArray[i].id),
       },
     });
+    console.log("hi", encryptData(nodeArray[i].data.label));
     if (!existingNode) {
       await prisma.nodes.create({
         data: {
@@ -223,11 +266,11 @@ async function savePost(req) {
         data: {
           x: nodeArray[i].position.x,
           y: nodeArray[i].position.y,
-          text: nodeArray[i].data.label,
+          text: encryptData(nodeArray[i].data.label),
           width: nodeArray[i].width,
           height: nodeArray[i].height,
           type: nodeArray[i].type,
-          file_id: req.body.id,
+          // file_id: req.body.id,
           color: nodeArray[i].data.color,
         },
       });
