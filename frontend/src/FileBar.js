@@ -4,7 +4,7 @@ import "./fileBar.css";
 import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
+function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
   const [isSideBarVisible, setIsSideBarVisible] = useState(true);
@@ -24,6 +24,7 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
         setFiles(response.data);
         // currently setting the first file to be the default page
         setPageId(response.data[0].file_id);
+        pageIdRef.current = response.data[0].file_id;
         renderBody(response.data[0]);
       })
       .catch((error) => {
@@ -58,7 +59,7 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
       "Are you sure you want to delete this file? This action cannot be undone."
     );
     if (confirmation) {
-      const index = files.findIndex((file) => file.file_id === id);
+      const index = files.findIndex((file) => file.file_id === id) - 1;
       const updatedItems = files.filter((file) => file.file_id !== id);
       axios
         .post(
@@ -69,22 +70,28 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
         .then((response) => {
           setFiles(updatedItems);
           filesRef.current = updatedItems;
-          // pageIdRef.current = index;
+          renderBody(updatedItems[index]);
+          pageIdRef.current = updatedItems[index].file_id;
+          // setPageId(updatedItems[index].file_id);
           setPopUpMenu(false);
         });
     }
   };
 
   async function renderBody(file) {
-    pageIdRef.current = file.file_id;
-    setPageId(file.file_id);
+    if (file) {
+      console.log("render", pageIdRef.current);
+      pageIdRef.current = file.file_id;
+      setPageId(file.file_id);
 
-    const editor = quill.current.getEditor();
-    // await editor.setContents([{ insert: "\n" }]);
-    console.log("body", file.body);
-    const delta = editor.clipboard.convert(file.body);
-    editor.setContents(delta);
-    editor.setSelection(editor.getLength(), 0);
+      const editor = quill.current.getEditor();
+      // await editor.setContents([{ insert: "\n" }]);
+      const delta = editor.clipboard.convert(file.body);
+      editor.setContents(delta);
+      editor.setSelection(editor.getLength(), 0);
+    } else {
+      pageIdRef.current = null;
+    }
 
     // editor.setText("");
     // editor.insertText(0, body);
@@ -109,10 +116,6 @@ function FileBar({ quill, setPageId, files, setFiles, pageIdRef, filesRef }) {
       </ul>
     );
   }
-
-  // const handleBlur = (event, index) => {
-  //   setPopUpMenu(false);
-  // };
 
   // on mouse up, if the target is not the whole div, then close the menu, but how do you get the whole div?
 

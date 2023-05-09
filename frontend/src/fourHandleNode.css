@@ -36,3 +36,7 @@
   flex-wrap: wrap;
   margin: 0.2rem 0 0 0;
 }
+
+.fourNode_body {
+  z-index: 10 !important;
+}

@@ -6,6 +6,7 @@ function FourHandleNode({ data, selected }) {
   const [value, setValue] = useState(data.label);
   const [color, setColor] = useState(data.color);
   const [showColorMenu, setShowColorMenu] = useState(false);
+  const [nodeWasClicked, setNodeWasClicked] = useState(false);
   const divRef = useRef(null);
 
   // let's see if this way of adding cursor works
@@ -18,7 +19,7 @@ function FourHandleNode({ data, selected }) {
     // }
     if (!selected) {
       setShowColorMenu(false);
-      console.log("unselected");
+      setNodeWasClicked(false);
     }
   });
 
@@ -35,6 +36,7 @@ function FourHandleNode({ data, selected }) {
   };
 
   const handleChange = (event) => {
+    // there are some bugs here that don't render >
     console.log("the value is", event);
     data.label = event.target.innerHTML;
     // setValue(event.target.innerHTML);
@@ -42,7 +44,6 @@ function FourHandleNode({ data, selected }) {
   };
 
   const handleColorChange = (colorValue) => {
-    // data.color = event.target.value;
     data.color = colorValue;
     setColor(colorValue);
   };
@@ -69,15 +70,18 @@ function FourHandleNode({ data, selected }) {
 
   const handleSelect = () => {
     selected = !selected;
-    console.log("HIII");
   };
 
   return (
     <div
       //  style={{ width: 150 }}
+      onClick={() => setNodeWasClicked(true)}
       onSelect={handleSelect}
+      style={{
+        zIndex: 100,
+      }}
     >
-      {selected ? (
+      {selected && nodeWasClicked ? (
         <>
           <div style={{ position: "absolute" }}>
             <div className="node_editMenu">
@@ -143,6 +147,7 @@ function FourHandleNode({ data, selected }) {
       ) : null}
 
       <div
+        className="fourNode_body"
         style={{
           background: "#fff",
           border: `solid ${selected ? "2px" : "1px"} ${color}`,

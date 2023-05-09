@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const { privateRoutes } = require("./routes/private.js");
 const authRoutes = require("./routes/auth.js");
 const { PrismaClient } = require("@prisma/client");
-const AWS = require("aws-sdk");
+// const AWS = require("aws-sdk");
 const crypto = require("crypto");
 
 dotenv.config();
@@ -17,37 +17,37 @@ const port = 5000;
 
 const app = express();
 
-const s3 = new AWS.S3({
-  region: "us-east-2",
-});
+// const s3 = new AWS.S3({
+//   region: "us-east-2",
+// });
 
-const sts = new AWS.STS();
+// const sts = new AWS.STS();
 
-const assumeRoleParams = {
-  RoleArn: process.env.ROLE_ARN,
-  RoleSessionName: process.env.ROLE_NAME,
-};
+// const assumeRoleParams = {
+//   RoleArn: process.env.ROLE_ARN,
+//   RoleSessionName: process.env.ROLE_NAME,
+// };
 
-sts.assumeRole(assumeRoleParams, function (err, data) {
-  if (err) {
-    console.log("Error assuming IAM role:", err);
-  } else {
-    const s3Params = {
-      Bucket: "<YOUR_BUCKET>",
-      Key: "<OBJECT_KEY>",
-      Body: "<YOUR_IMAGE>",
-      Credentials: data.Credentials,
-    };
+// sts.assumeRole(assumeRoleParams, function (err, data) {
+//   if (err) {
+//     console.log("Error assuming IAM role:", err);
+//   } else {
+//     const s3Params = {
+//       Bucket: "<YOUR_BUCKET>",
+//       Key: "<OBJECT_KEY>",
+//       Body: "<YOUR_IMAGE>",
+//       Credentials: data.Credentials,
+//     };
 
-    s3.upload(s3Params, function (err, data) {
-      if (err) {
-        console.log("Error uploading image:", err);
-      } else {
-        console.log("Image uploaded to S3:", data.Location);
-      }
-    });
-  }
-});
+//     s3.upload(s3Params, function (err, data) {
+//       if (err) {
+//         console.log("Error uploading image:", err);
+//       } else {
+//         console.log("Image uploaded to S3:", data.Location);
+//       }
+//     });
+//   }
+// });
 
 const prisma = new PrismaClient();
 
@@ -202,116 +202,105 @@ app.post("/savePost", (req, res) => {
 
 app.get("/fetchFileData", async (req, res) => {
   // this req.query looks like it can cause errors very easily
-  console.log("ID", req.query.pageId);
   const nodeData = await prisma.nodes.findMany({
     where: {
       file_id: parseInt(req.query.pageId),
     },
   });
-
-  for (let data of nodeData) {
-    data.text = decryptData(data.text);
+  try {
+    for (let data of nodeData) {
+      data.text = decryptData(data.text);
+    }
+    const edgeData = await prisma.edges.findMany({
+      where: {
+        file_id: parseInt(req.query.pageId),
+      },
+    });
+    res.send({ nodeData, edgeData });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error decrypting data");
   }
-  // console.log("nodes", nodeData);
-
-  const edgeData = await prisma.edges.findMany({
-    where: {
-      file_id: parseInt(req.query.pageId),
-    },
-  });
-  // console.log(edgeData);
-  res.send({ nodeData, edgeData });
 });
 
 async function savePost(req) {
-  const existingFile = await prisma.files.findUnique({
-    where: {
-      file_id: req.body.id,
-    },
-  });
-  const nodeArray = req.body.nodes;
-  const edgeArray = req.body.edges;
+  try {
+    const nodeArray = req.body.nodes;
+    const edgeArray = req.body.edges;
 
-  // console.log(edgeArray);
-
-  for (let i = 0; i < nodeArray.length; i++) {
-    // fix this
-    // if (nodeArray[i].data.imageData) {
-    //   console.log("image data", nodeArray[i].data.imageData);
-    // }
-    // check if node exists in current file
-    const existingNode = await prisma.nodes.findUnique({
-      where: {
-        node_id: parseInt(nodeArray[i].id),
-      },
-    });
-    console.log("hi", encryptData(nodeArray[i].data.label));
-    if (!existingNode) {
-      await prisma.nodes.create({
-        data: {
+    for (let i = 0; i < nodeArray.length; i++) {
+      const existingNode = await prisma.nodes.findUnique({
+        where: {
           node_id: parseInt(nodeArray[i].id),
-          x: nodeArray[i].position.x,
-          y: nodeArray[i].position.y,
-          text: nodeArray[i].data.label,
-          width: nodeArray[i].width,
-          height: nodeArray[i].height,
-          type: nodeArray[i].type,
-          file_id: req.body.id,
-          color: nodeArray[i].data.color,
         },
       });
-    } else {
-      await prisma.nodes.update({
-        where: { node_id: parseInt(nodeArray[i].id) },
-        data: {
-          x: nodeArray[i].position.x,
-          y: nodeArray[i].position.y,
-          text: encryptData(nodeArray[i].data.label),
-          width: nodeArray[i].width,
-          height: nodeArray[i].height,
-          type: nodeArray[i].type,
-          // file_id: req.body.id,
-          color: nodeArray[i].data.color,
-        },
-      });
+      if (!existingNode) {
+        await prisma.nodes.create({
+          data: {
+            node_id: parseInt(nodeArray[i].id),
+            x: nodeArray[i].position.x,
+            y: nodeArray[i].position.y,
+            text: nodeArray[i].data.label,
+            width: nodeArray[i].width,
+            height: nodeArray[i].height,
+            type: nodeArray[i].type,
+            file_id: req.body.id,
+            color: nodeArray[i].data.color,
+          },
+        });
+      } else {
+        await prisma.nodes.update({
+          where: { node_id: parseInt(nodeArray[i].id) },
+          data: {
+            x: nodeArray[i].position.x,
+            y: nodeArray[i].position.y,
+            text: encryptData(nodeArray[i].data.label),
+            width: nodeArray[i].width,
+            height: nodeArray[i].height,
+            type: nodeArray[i].type,
+            // file_id: req.body.id,
+            color: nodeArray[i].data.color,
+          },
+        });
+      }
     }
-  }
 
-  for (let i = 0; i < edgeArray.length; i++) {
-    // console.log(edgeArray[i]);
-    const existingEdge = await prisma.edges.findUnique({
-      where: {
-        id: edgeArray[i].id,
-      },
-    });
-
-    if (!existingEdge) {
-      await prisma.edges.create({
-        data: {
+    for (let i = 0; i < edgeArray.length; i++) {
+      const existingEdge = await prisma.edges.findUnique({
+        where: {
           id: edgeArray[i].id,
-          source: edgeArray[i].source,
-          target: edgeArray[i].target,
-          source_handle: edgeArray[i].sourceHandle,
-          target_handle: edgeArray[i].targetHandle,
-          file_id: req.body.id,
         },
       });
-    } else {
-      await prisma.edges.update({
-        where: { id: edgeArray[i].id },
-        data: {
-          id: edgeArray[i].id,
-          source: edgeArray[i].source,
-          target: edgeArray[i].target,
-          source_handle: edgeArray[i].sourceHandle,
-          target_handle: edgeArray[i].targetHandle,
-          file_id: req.body.id,
-        },
-      });
+
+      if (!existingEdge) {
+        await prisma.edges.create({
+          data: {
+            id: edgeArray[i].id,
+            source: edgeArray[i].source,
+            target: edgeArray[i].target,
+            source_handle: edgeArray[i].sourceHandle,
+            target_handle: edgeArray[i].targetHandle,
+            file_id: req.body.id,
+          },
+        });
+      } else {
+        await prisma.edges.update({
+          where: { id: edgeArray[i].id },
+          data: {
+            id: edgeArray[i].id,
+            source: edgeArray[i].source,
+            target: edgeArray[i].target,
+            source_handle: edgeArray[i].sourceHandle,
+            target_handle: edgeArray[i].targetHandle,
+            file_id: req.body.id,
+          },
+        });
+      }
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error saving node" });
   }
-
-  // if existing file, update file
 }
 
 app.listen(port, hostname, () => {

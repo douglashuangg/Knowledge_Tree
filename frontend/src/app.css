@@ -3,15 +3,23 @@
   position: absolute;
   top: 0;
   right: 0;
-  /* set background color, padding, and margin of list */
-  /* background-color: #f1f1f1; */
-  padding: 2rem;
-  margin: 0;
-  /* remove default list styles */
+  padding: 0.7rem;
+  margin: 0.1rem;
   list-style: none;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
+  background-color: rgb(249, 248, 248);
+  border-radius: 0.3rem;
+  z-index: 1;
 }
 
 .nav_item {
   padding-right: 0.4rem;
+}
+
+.nav_item:hover {
+  cursor: pointer;
+}
+
+.new:hover {
+  cursor: pointer;
 }

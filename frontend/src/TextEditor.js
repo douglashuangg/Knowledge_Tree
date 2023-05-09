@@ -16,15 +16,15 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import fourHandleNode from "./fourHandleNode";
 import imageNode from "./imageNode";
+import rectangleNode from "./rectangleNode";
 import CropSquareIcon from "@mui/icons-material/CropSquare";
+import RectangleIcon from "@mui/icons-material/Rectangle";
 import debounce from "lodash/debounce";
 
 const nodeTypes = {
   fourHandleNode: fourHandleNode,
-  selectedNode: {
-    border: "2px solid blue",
-  },
   imageNode: imageNode,
+  rectangleNode: rectangleNode,
 };
 
 const zoomSelector = (s) => {
@@ -41,15 +41,13 @@ function TextEditor() {
   // let offsetYRef = useRef(0);
   // let scaleRef = useRef(1);
   const [input, setInput] = useState("");
-  const [inputList, setInputList] = useState([]);
   const [pageId, setPageId] = useState();
-  const [positions, setPositions] = useState({});
   const [addingNode, setAddingNode] = useState(false);
+  const [addingRect, setAddingRect] = useState(false);
   const [files, setFiles] = useState([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [imageUrl, setImageUrl] = useState(null);
-  let filesRef = useRef([]);
 
+  let filesRef = useRef([]);
   let pageIdRef = useRef();
 
   // should not be able to link to itself.
@@ -112,6 +110,7 @@ function TextEditor() {
           },
         })
         .then((response) => {
+          console.log(response.data.nodeData);
           const savedNodes = response.data.nodeData.map((file) => {
             return {
               id: file.node_id.toString(),
@@ -120,11 +119,15 @@ function TextEditor() {
               position: {
                 x: parseInt(file.x),
                 y: parseInt(file.y),
-                height: file.height,
-                width: file.width,
+              },
+              style: file.type === "rectangleNode" && {
+                width: parseInt(file.width),
+                height: parseInt(file.height),
               },
             };
           });
+
+          console.log("nodes", savedNodes);
 
           const savedEdges = response.data.edgeData.map((edge) => {
             return {
@@ -296,7 +299,6 @@ function TextEditor() {
   const handleChange = (content, delta, source, editor) => {
     const fullText = editor.getText();
     const firstLine = fullText.split("\n")[0];
-    console.log("pageId", pageIdRef);
     if (fullText.trim() !== "") {
       setFiles((prev) =>
         prev.map((file) => {
@@ -334,6 +336,7 @@ function TextEditor() {
       let data = quillRef.current.getEditor().getContents()["ops"][0]["insert"];
       // console.log(`[${Date.now()}] Data:`, data);
       // make sure there is a pageId before saving to database
+      // so apparently only this pageId will work, probably something to do with rendering.
       if (old !== data && pageId) {
         console.log(nodes);
 
@@ -372,6 +375,12 @@ function TextEditor() {
     // get position of the mouse
     // where the mouse is clicked, add a node
     setAddingNode(!addingNode);
+    setAddingRect(false);
+  };
+
+  const addRectClicked = () => {
+    setAddingRect(!addingRect);
+    setAddingNode(false);
   };
 
   const getMousePosition = (event) => {
@@ -397,11 +406,48 @@ function TextEditor() {
     return position;
   };
 
+  function postNodeToBackend(newNode) {
+    axios
+      .post("http://localhost:5000/saveNode", {
+        pageId: pageIdRef.current,
+        newNode: newNode,
+      })
+      .then((response) => {
+        const createdNode = response.data;
+
+        // might have bug here.
+        const newNode = {
+          id: createdNode.node_id.toString(),
+          type: createdNode.type,
+          data: {
+            label: createdNode.text,
+            color: createdNode.color,
+            justCreated: true,
+          },
+          position: {
+            x: parseInt(createdNode.x),
+            y: parseInt(createdNode.y),
+          },
+          height: parseInt(createdNode.height),
+          width: parseInt(createdNode.width),
+          selected: true,
+        };
+        setNodes((prevState) => prevState.concat(newNode));
+      });
+  }
+
   const handleCanvasClick = (event) => {
-    console.log(nodes);
     const position = getMousePosition(event);
-    console.log("zoom", offsetProperties[0], offsetXRef.current);
-    console.log("X", position.x);
+    if (addingRect) {
+      const newNode = {
+        position: position,
+        data: { label: "", color: "black" },
+        type: "rectangleNode",
+      };
+
+      postNodeToBackend(newNode);
+      setAddingRect(false);
+    }
     if (addingNode) {
       const newNode = {
         position: position,
@@ -410,34 +456,7 @@ function TextEditor() {
         height: 53,
       };
 
-      axios
-        .post("http://localhost:5000/saveNode", {
-          pageId: pageIdRef.current,
-          newNode: newNode,
-        })
-        .then((response) => {
-          console.log("RESPONSE", response.data);
-          const createdNode = response.data;
-          console.log("created", createdNode.x, createdNode.y);
-          // might have bug here.
-          const newNode = {
-            id: createdNode.node_id.toString(),
-            type: createdNode.type,
-            data: {
-              label: createdNode.text,
-              color: createdNode.color,
-              justCreated: true,
-            },
-            position: {
-              x: parseInt(createdNode.x),
-              y: parseInt(createdNode.y),
-            },
-            height: 53,
-            width: createdNode.width,
-            selected: true,
-          };
-          setNodes((prevState) => prevState.concat(newNode));
-        });
+      postNodeToBackend(newNode);
 
       setAddingNode(false);
     }
@@ -504,7 +523,13 @@ function TextEditor() {
         pageIdRef={pageIdRef}
         filesRef={filesRef}
       />
-      <div className="parent-div">
+      <h1 style={{ margin: 0, display: pageIdRef.current ? "none" : null }}>
+        Please add a file to begin
+      </h1>
+      <div
+        className="parent-div"
+        style={{ display: pageIdRef.current ? null : "none" }}
+      >
         <div className="text-editor">
           <ReactQuill
             ref={quillRef}
@@ -531,6 +556,21 @@ function TextEditor() {
               <CropSquareIcon />
             </button>
             <div className="hidden_addNode">Add Node</div>
+            <button
+              className="button_addNode"
+              style={{ backgroundColor: addingRect ? "#b5b2b2" : "#f3f1f1" }}
+              onClick={addRectClicked}
+            >
+              <RectangleIcon />
+            </button>
+            <div
+              className="hidden_addNode"
+              style={{
+                marginTop: "2rem",
+              }}
+            >
+              Add Rectangle
+            </div>
           </div>
           <ReactFlow
             nodes={nodes}

@@ -1,5 +1,6 @@
 import React from "react";
 import "./landingPage.css";
+import { Link } from "react-router-dom";
 
 function LandingPage() {
   return (
@@ -11,7 +12,9 @@ function LandingPage() {
           Tired of learning tidbits of information and never seeing the big
           picture? Redwood is the mindmapping tool for education.
         </p>
-        <button className="button_getStarted">Get Started</button>
+        <Link to={`/signup`}>
+          <button className="button_getStarted">Get Started</button>
+        </Link>
       </div>
       <div style={{ height: "50rem", border: "5px solid purple" }}>
         Insert Image Here*

@@ -40,13 +40,6 @@ function App() {
 
   return (
     <>
-      {loggedIn ? (
-        <ReactFlowProvider>
-          <TextEditor />
-        </ReactFlowProvider>
-      ) : (
-        <LandingPage />
-      )}
       <nav>
         <ul className="navbar">
           <li>
@@ -66,6 +59,14 @@ function App() {
           </li>
         </ul>
       </nav>
+      {loggedIn ? (
+        <ReactFlowProvider>
+          <TextEditor />
+        </ReactFlowProvider>
+      ) : (
+        <LandingPage />
+      )}
+
       {/* <LandingPage /> */}
       {/* <Login /> */}
       {/* <TextEditor /> */}
