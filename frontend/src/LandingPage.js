@@ -16,9 +16,7 @@ function LandingPage() {
           <button className="button_getStarted">Get Started</button>
         </Link>
       </div>
-      <div style={{ height: "50rem", border: "5px solid purple" }}>
-        Insert Image Here*
-      </div>
+      <div style={{ height: "50rem" }}></div>
       <footer>
         <div className="footer_container">
           <div className="footer-content">

@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const checkAuth = (req, res, next) => {
   const token = req.cookies.access_token;
   if (!token) {
-    console.log("stuck");
     return res.send({ loggedIn: false });
     // return res.status(401).json("Not authenticated.");
   }

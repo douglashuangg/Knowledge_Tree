@@ -28,13 +28,11 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
         renderBody(response.data[0]);
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   }, []);
 
   const addNewFile = () => {
-    console.log("adding new file");
-
     const newFile = {
       title: "Untitled",
       body: "",
@@ -49,12 +47,11 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
         renderBody(response.data);
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   };
 
   const handleDelete = (id) => {
-    console.log("deleted");
     const confirmation = window.confirm(
       "Are you sure you want to delete this file? This action cannot be undone."
     );
@@ -80,7 +77,6 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
 
   async function renderBody(file) {
     if (file) {
-      console.log("render", pageIdRef.current);
       pageIdRef.current = file.file_id;
       setPageId(file.file_id);
 
@@ -142,7 +138,6 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
   const handleMenu = (event, id, index) => {
     event.stopPropagation();
     indexRef.current = index;
-    console.log("id", id);
     setThisFile(id);
     setPopUpMenu(!popUpMenu);
   };

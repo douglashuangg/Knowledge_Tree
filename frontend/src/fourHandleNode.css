@@ -15,7 +15,7 @@
   border-radius: 0.3rem;
   width: 8rem;
   /* position: absolute; */
-  margin-top: 4.5rem;
+  /* margin-top: 4.5rem; */
   background-color: rgb(245, 243, 243);
 }
 
@@ -34,7 +34,9 @@
   border-radius: 0.3rem;
   display: flex;
   flex-wrap: wrap;
-  margin: 0.2rem 0 0 0;
+  /* margin: 0.2rem 0 0 0; */
+  top: -4.5rem;
+  position: absolute;
 }
 
 .fourNode_body {

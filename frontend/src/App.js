@@ -15,7 +15,6 @@ function App() {
     const logoutUrl = "http://localhost:5000/auth/logout";
     axios.get(logoutUrl, { withCredentials: true }).then((response) => {
       setLoggedIn(false);
-      console.log("logged out");
     });
   }
   useEffect(() => {
@@ -26,10 +25,9 @@ function App() {
       .then((response) => {
         setLoggedIn(response.data.loggedIn);
         setLoading(false);
-        console.log("logged in", response.data.loggedIn);
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         setLoading(false);
       });
   }, []);

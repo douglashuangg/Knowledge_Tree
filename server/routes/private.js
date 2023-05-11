@@ -2,20 +2,18 @@ const express = require("express");
 const checkAuth = require("../middlewares/checkAuth.js");
 const { Client } = require("pg");
 const { PrismaClient } = require("@prisma/client");
-
+const { encryptData, decryptData } = require("../utils/encryption.js");
 const prisma = new PrismaClient();
 const router = express.Router();
 
 // I see how the middleware fits in
 // middleware first calls checkAuth, and then goes to private route.
 router.get("/", checkAuth, (req, res) => {
-  console.log("work");
   res.send({ loggedIn: true });
 });
 
 // this has to be here because it needs to get the user id
 router.get("/fetchFiles", checkAuth, async (req, res) => {
-  console.log(req.user);
   try {
     // database connection
     const client = new Client({
@@ -30,16 +28,23 @@ router.get("/fetchFiles", checkAuth, async (req, res) => {
       "SELECT * from files WHERE user_id = $1 order by FILE_ID ASC",
       [req.user.id]
     );
-    console.log(result.rows.sort());
+
+    const decryptedResult = result.rows.map((row) => {
+      return {
+        ...row,
+        title: decryptData(row.title),
+        body: decryptData(row.body),
+      };
+    });
+    console.log("decrypted", decryptedResult);
     await client.end();
-    res.json(result.rows);
+    res.json(decryptedResult);
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 });
 
 router.post("/addFile", checkAuth, async (req, res) => {
-  console.log(req.body);
   try {
     const createdFile = await prisma.files.create({
       data: {
@@ -55,9 +60,19 @@ router.post("/addFile", checkAuth, async (req, res) => {
 });
 
 router.post("/deleteFile", checkAuth, async (req, res) => {
-  console.log(req.body);
   try {
-    const deletedFile = await prisma.files.delete({
+    await prisma.nodes.deleteMany({
+      where: {
+        file_id: req.body.id,
+      },
+    });
+
+    await prisma.edges.deleteMany({
+      where: {
+        file_id: req.body.id,
+      },
+    });
+    await prisma.files.delete({
       where: {
         file_id: req.body.id,
       },

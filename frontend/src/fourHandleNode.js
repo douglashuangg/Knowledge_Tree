@@ -15,13 +15,23 @@ function FourHandleNode({ data, selected }) {
     // divRef.current.focus();
     // divRef.current.contentEditable = true;
     data.justCreated = false;
-    // console.log(showColorMenu);
     // }
     if (!selected) {
       setShowColorMenu(false);
       setNodeWasClicked(false);
     }
   });
+
+  useEffect(() => {
+    divRef.current.rows = 1;
+    divRef.current.style.height = "auto";
+    divRef.current.style.height = divRef.current.scrollHeight + "px";
+  }, [value]);
+
+  // useEffect(() => {
+  //   divRef.current.style.height = "auto";
+  //   divRef.current.style.height = `${divRef.current.scrollHeight}px`;
+  // }, [value]);
 
   //unselect make it not editable.
   const handleClick = (event) => {
@@ -37,10 +47,11 @@ function FourHandleNode({ data, selected }) {
 
   const handleChange = (event) => {
     // there are some bugs here that don't render >
-    console.log("the value is", event);
-    data.label = event.target.innerHTML;
-    // setValue(event.target.innerHTML);
-    console.log("Data", data);
+    // will have to change how this works.
+    data.label = event.target.value;
+    setValue(event.target.value);
+    // divRef.current.style.height = "auto";
+    // divRef.current.style.height = `${divRef.current.scrollHeight + 50}px`;
   };
 
   const handleColorChange = (colorValue) => {
@@ -74,75 +85,82 @@ function FourHandleNode({ data, selected }) {
 
   return (
     <div
-      //  style={{ width: 150 }}
       onClick={() => setNodeWasClicked(true)}
       onSelect={handleSelect}
       style={{
         zIndex: 100,
+        width: 180,
+        border: selected ? "1px solid #3b65ff" : null,
+        padding: 2,
       }}
     >
       {selected && nodeWasClicked ? (
         <>
-          <div style={{ position: "absolute" }}>
-            <div className="node_editMenu">
-              {/* <input
+          <div
+            className="node_editMenu"
+            style={{
+              position: "absolute",
+              border: "1px solid black",
+              top: "-2.7rem",
+            }}
+          >
+            {/* <input
                 type="color"
                 defaultValue={color}
                 onInput={handleColorChange}
               /> */}
+            <div
+              style={{
+                margin: "4px",
+                borderRadius: "50%",
+                backgroundColor: `${color}`,
+                border: `1px solid ${color}`,
+                height: 25,
+                width: 25,
+                cursor: "pointer",
+              }}
+              onClick={toggleColorSelector}
+            ></div>
+          </div>
+          {showColorMenu && selected ? (
+            <div className="div_colorOptionMenu">
               <div
-                style={{
-                  margin: "4px",
-                  borderRadius: "50%",
-                  backgroundColor: `${color}`,
-                  border: `1px solid ${color}`,
-                  height: 25,
-                  width: 25,
-                  cursor: "pointer",
-                }}
-                onClick={toggleColorSelector}
+                className="div_colorOption"
+                style={{ backgroundColor: "#F51414" }}
+                onClick={() => handleColorChange("#F51414")}
+              ></div>
+              <div
+                className="div_colorOption"
+                style={{ backgroundColor: "#576BCB" }}
+                onClick={() => handleColorChange("#576BCB")}
+              ></div>
+              <div
+                className="div_colorOption"
+                style={{ backgroundColor: "#35A650" }}
+                onClick={() => handleColorChange("#35A650")}
+              ></div>
+              {/* <div
+                  className="div_colorOption"
+                  style={{ backgroundColor: "#faf20c" }}
+                  onClick={() => handleColorChange("#faf20c")}
+                ></div> */}
+              <div
+                className="div_colorOption"
+                style={{ backgroundColor: "#856651" }}
+                onClick={() => handleColorChange("#856651")}
+              ></div>
+              <div
+                className="div_colorOption"
+                style={{ backgroundColor: "#FFF" }}
+                onClick={() => handleColorChange("#FFF")}
+              ></div>
+              <div
+                className="div_colorOption"
+                style={{ backgroundColor: "#000" }}
+                onClick={() => handleColorChange("#000")}
               ></div>
             </div>
-            {showColorMenu && selected ? (
-              <div className="div_colorOptionMenu">
-                <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#F51414" }}
-                  onClick={() => handleColorChange("#F51414")}
-                ></div>
-                <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#576BCB" }}
-                  onClick={() => handleColorChange("#576BCB")}
-                ></div>
-                <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#35A650" }}
-                  onClick={() => handleColorChange("#35A650")}
-                ></div>
-                <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#FDEC08" }}
-                  onClick={() => handleColorChange("#FDEC08")}
-                ></div>
-                {/* <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#FF6600" }}
-                  onClick={() => handleColorChange("#FF6600")}
-                ></div> */}
-                <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#856651" }}
-                  onClick={() => handleColorChange("#856651")}
-                ></div>
-                <div
-                  className="div_colorOption"
-                  style={{ backgroundColor: "#000" }}
-                  onClick={() => handleColorChange("#000")}
-                ></div>
-              </div>
-            ) : null}
-          </div>
+          ) : null}
         </>
       ) : null}
 
@@ -150,11 +168,16 @@ function FourHandleNode({ data, selected }) {
         className="fourNode_body"
         style={{
           background: "#fff",
-          border: `solid ${selected ? "2px" : "1px"} ${color}`,
+          border: `solid ${selected ? "1px" : "1.5px"} ${
+            color === "#FFF" ? "black" : color
+          }`,
+          backgroundColor: `${color}`,
           borderRadius: 4,
           padding: 5,
-          minWidth: 120,
-          height: 53,
+          paddingBottom: 20,
+          paddingTop: 20,
+          minWidth: 90,
+          // height: 53,
           // width: 120,
           display: "flex",
           flexDirection: "column",
@@ -167,44 +190,60 @@ function FourHandleNode({ data, selected }) {
         <Handle
           type="source"
           position={Position.Top}
-          style={{ background: "black", position: "absolute" }}
+          style={{
+            background: color === "#FFF" ? "black" : color,
+            position: "absolute",
+          }}
           id="top"
         />
         <Handle
           type="source"
           position={Position.Right}
-          style={{ background: "black" }}
+          style={{ background: color === "#FFF" ? "black" : color }}
           id="right"
         />
         <Handle
           type="target"
           position={Position.Bottom}
-          style={{ background: "black", left: "10" }}
+          style={{ background: color === "#FFF" ? "black" : color, left: "10" }}
           id="bottom"
         />
         <Handle
           type="target"
           position={Position.Left}
-          style={{ background: "black" }}
+          style={{ background: color === "#FFF" ? "black" : color }}
           id="left"
         />
-        <div
+        <textarea
           ref={divRef}
           style={{
-            padding: "10px",
-            width: "100%",
+            width: "90%",
+            paddingTop: 0,
+            paddingBottom: 0,
             border: "none",
             outline: "0px solid transparent",
             pointerEvents: "auto",
+            // outline: "none",
+            resize: "none",
+            // boxSizing: "border-box",
+            fontFamily: "Arial",
+            fontSize: "1.2rem",
+            lineHeight: "1.3rem",
+            textAlign: "center",
+            // height: "4rem",
+            backgroundColor: `${color}`,
+            color: color === "#FFF" ? "black" : "#fff",
+            overflow: "hidden",
           }}
           onDoubleClick={handleClick}
           onFocus={handleDivFocus}
           onBlur={handleBlur}
           onInput={handleChange}
+          value={value}
+          onChange={handleChange}
         >
-          {value}
           {/* <img src={data.imageUrl} /> */}
-        </div>
+        </textarea>
       </div>
     </div>
   );

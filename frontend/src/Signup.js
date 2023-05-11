@@ -13,7 +13,6 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("submitted");
     await axios
       .post(
         url,
@@ -23,7 +22,6 @@ function Login() {
         }
       )
       .then((response) => {
-        console.log("User created successfully", response);
         navigate("/");
       })
       .catch((error) => {

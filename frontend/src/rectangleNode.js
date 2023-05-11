@@ -10,23 +10,30 @@ function RectangleNode({ data, selected }) {
   const rectRef = useRef(null);
 
   useEffect(() => {
+    window.addEventListener("error", (e) => {
+      if (e.message === "ResizeObserver loop limit exceeded") {
+        const resizeObserverErrDiv = document.getElementById(
+          "webpack-dev-server-client-overlay-div"
+        );
+        const resizeObserverErr = document.getElementById(
+          "webpack-dev-server-client-overlay"
+        );
+        if (resizeObserverErr) {
+          resizeObserverErr.setAttribute("style", "display: none");
+        }
+        if (resizeObserverErrDiv) {
+          resizeObserverErrDiv.setAttribute("style", "display: none");
+        }
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     // a lot of console logs
     const parentDiv = rectRef.current.parentNode;
     parentDiv.style.zIndex = -100;
     if (!selected) {
       setNodeWasClicked(false);
-    }
-  });
-  const e = window.onerror;
-  window.addEventListener("error", function (event) {
-    console.log(event);
-    if (event.message === "ResizeObserver loop limit exceeded") {
-      event.stopPropagation();
-      console.log(event);
-      event.preventDefault();
-      return true;
-    } else {
-      return e(...arguments);
     }
   });
 
@@ -80,7 +87,7 @@ function RectangleNode({ data, selected }) {
             style={{
               position: "absolute",
               border: "1px solid black",
-              top: "-2.5rem",
+              top: "-2.7rem",
             }}
           >
             <div
@@ -132,6 +139,11 @@ function RectangleNode({ data, selected }) {
                 className="div_colorOption"
                 style={{ backgroundColor: "#FFF" }}
                 onClick={() => handleColorChange("#FFF")}
+              ></div>
+              <div
+                className="div_colorOption"
+                style={{ backgroundColor: "#000" }}
+                onClick={() => handleColorChange("#000")}
               ></div>
             </div>
           ) : null}

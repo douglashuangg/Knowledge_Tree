@@ -9,7 +9,7 @@ const authRoutes = require("./routes/auth.js");
 const { PrismaClient } = require("@prisma/client");
 // const AWS = require("aws-sdk");
 const crypto = require("crypto");
-
+const { encryptData, decryptData } = require("./utils/encryption.js");
 dotenv.config();
 
 const hostname = "127.0.0.1";
@@ -51,43 +51,6 @@ const app = express();
 
 const prisma = new PrismaClient();
 
-// seret hash for encryption
-const key = crypto
-  .createHash("sha512")
-  .update(process.env.SECRET_KEY)
-  .digest("hex")
-  .substring(0, 32);
-
-const encryptionIV = crypto
-  .createHash("sha256")
-  .update(process.env.SECRET_IV)
-  .digest("hex")
-  .substring(0, 16);
-
-function encryptData(data) {
-  const cipher = crypto.createCipheriv(
-    process.env.ENCRYPTION_METHOD,
-    key,
-    encryptionIV
-  );
-  return Buffer.from(
-    cipher.update(data, "utf8", "hex") + cipher.final("hex")
-  ).toString("base64");
-}
-
-function decryptData(encryptedData) {
-  const buff = Buffer.from(encryptedData, "base64");
-  const decipher = crypto.createDecipheriv(
-    process.env.ENCRYPTION_METHOD,
-    key,
-    encryptionIV
-  );
-  return (
-    decipher.update(buff.toString("utf8"), "hex", "utf8") +
-    decipher.final("utf8")
-  );
-}
-
 // cors middleware
 app.use(
   cors({
@@ -108,7 +71,7 @@ app.use("/auth", authRoutes);
 app.use("/private", privateRoutes);
 
 app.post("/saveFile", async (req, res) => {
-  console.log("FILE", req.body);
+  console.log("save", req.body.file);
   try {
     const existingFile = await prisma.files.findUnique({
       where: {
@@ -116,14 +79,13 @@ app.post("/saveFile", async (req, res) => {
       },
     });
     if (existingFile) {
-      console.log("entered");
       const updatedFile = await prisma.files.update({
         where: {
           file_id: req.body.file.file_id,
         },
         data: {
-          title: req.body.file.title,
-          body: req.body.file.body,
+          title: encryptData(req.body.file.title),
+          body: encryptData(req.body.file.body),
           lastAccessed: new Date(),
         },
       });
@@ -137,18 +99,17 @@ app.post("/saveFile", async (req, res) => {
 app.post("/saveNode", async (req, res) => {
   try {
     const node = req.body.newNode;
-    // console.log(node);
     const createdNode = await prisma.nodes.create({
       data: {
         x: node.position.x,
         y: node.position.y,
         type: node.type,
-        text: node.data.label,
+        text: encryptData(node.data.label),
         file_id: req.body.pageId,
         color: node.data.color,
       },
     });
-    // console.log("created", createdNode);
+    createdNode.text = "";
     res.status(200).json(createdNode);
   } catch (error) {
     console.error(error);
@@ -157,13 +118,19 @@ app.post("/saveNode", async (req, res) => {
 });
 
 app.delete("/deleteNode", async (req, res) => {
-  console.log(req.body);
   try {
-    const deletedNode = await prisma.nodes.delete({
-      where: {
-        node_id: parseInt(req.body.deletedId),
-      },
-    });
+    for (let i = 0; i < req.body.deleted.length; i++) {
+      await prisma.nodes.delete({
+        where: {
+          node_id: parseInt(req.body.deleted[i].id),
+        },
+      });
+    }
+    // const deletedNode = await prisma.nodes.delete({
+    //   where: {
+    //     node_id: parseInt(req.body.deletedId),
+    //   },
+    // });
     res.status(200).json({ message: "Node deleted" });
   } catch (error) {
     console.error(error);
@@ -172,13 +139,21 @@ app.delete("/deleteNode", async (req, res) => {
 });
 
 app.delete("/deleteEdge", async (req, res) => {
-  console.log("THESE EDGES", req.body);
   try {
-    await prisma.edges.delete({
-      where: {
-        id: req.body.edgeToDelete.id,
-      },
-    });
+    console.log("Why random edges", req.body.edgesToDelete);
+    for (let i = 0; i < req.body.edgesToDelete.length; i++) {
+      await prisma.edges.delete({
+        where: {
+          id: req.body.edgesToDelete[i].id,
+        },
+      });
+      console.log("ID", req.body.edgesToDelete[i].id);
+    }
+    // await prisma.edges.delete({
+    //   where: {
+    //     id: req.body.edgeToDelete.id,
+    //   },
+    // });
     res.status(200).json({ message: "edge deleted" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting edge" });
@@ -186,7 +161,6 @@ app.delete("/deleteEdge", async (req, res) => {
 });
 
 app.post("/savePost", (req, res) => {
-  // console.log("your post data", req.body);
   // post to postgres
   savePost(req)
     .then(async () => {
@@ -240,7 +214,7 @@ async function savePost(req) {
             node_id: parseInt(nodeArray[i].id),
             x: nodeArray[i].position.x,
             y: nodeArray[i].position.y,
-            text: nodeArray[i].data.label,
+            text: encryptData(nodeArray[i].data.label),
             width: nodeArray[i].width,
             height: nodeArray[i].height,
             type: nodeArray[i].type,
@@ -265,6 +239,7 @@ async function savePost(req) {
       }
     }
 
+    // console.log("hey", edgeArray);
     for (let i = 0; i < edgeArray.length; i++) {
       const existingEdge = await prisma.edges.findUnique({
         where: {
@@ -287,12 +262,10 @@ async function savePost(req) {
         await prisma.edges.update({
           where: { id: edgeArray[i].id },
           data: {
-            id: edgeArray[i].id,
             source: edgeArray[i].source,
             target: edgeArray[i].target,
             source_handle: edgeArray[i].sourceHandle,
             target_handle: edgeArray[i].targetHandle,
-            file_id: req.body.id,
           },
         });
       }

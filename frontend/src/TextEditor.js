@@ -110,7 +110,6 @@ function TextEditor() {
           },
         })
         .then((response) => {
-          console.log(response.data.nodeData);
           const savedNodes = response.data.nodeData.map((file) => {
             return {
               id: file.node_id.toString(),
@@ -127,8 +126,6 @@ function TextEditor() {
             };
           });
 
-          console.log("nodes", savedNodes);
-
           const savedEdges = response.data.edgeData.map((edge) => {
             return {
               id: edge.id.toString(),
@@ -142,7 +139,7 @@ function TextEditor() {
           setEdges(savedEdges);
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         });
     }
   }, [pageIdRef.current]);
@@ -150,9 +147,7 @@ function TextEditor() {
   const url = "http://localhost:5000/savePost";
 
   function sendData(data) {
-    axios.post(url, data).then((response) => {
-      console.log("DONE");
-    });
+    axios.post(url, data).then((response) => {});
   }
 
   const objRef = useRef([]);
@@ -218,22 +213,15 @@ function TextEditor() {
 
   async function handlePaste(event) {
     if (event.ctrlKey && event.key === "v") {
-      console.log("Pasted", event);
-      console.log("this mouse", mousePosition);
       const items = await navigator.clipboard.read();
 
       const clipboardItem = items[0];
-      console.log(clipboardItem);
       if (
         clipboardItem.types.includes("image/png") ||
         clipboardItem.types.includes("image/jpeg")
       ) {
-        console.log("handling Paste");
-
         const blob = await clipboardItem.getType("image/png");
-        console.log("The image blob", blob);
         const url = URL.createObjectURL(blob);
-        console.log(url);
         const newNode = {
           id: Math.random().toString(),
           data: {
@@ -279,27 +267,30 @@ function TextEditor() {
       const file = filesRef.current.find(
         (file) => file.file_id === pageIdRef.current
       );
-      console.log("this File", file);
       file.body = content;
 
       axios
         .post("http://localhost:5000/saveFile", {
           file: file,
         })
-        .then((response) => {
-          console.log("Saved File");
-        })
+        .then((response) => {})
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         });
     }, 1000),
     []
   );
 
   const handleChange = (content, delta, source, editor) => {
-    const fullText = editor.getText();
-    const firstLine = fullText.split("\n")[0];
-    if (fullText.trim() !== "") {
+    const contents = editor.getContents();
+    console.log("Content", contents);
+    const firstLine = contents.ops[0].insert.split("\n")[0];
+    const fullText = editor.getHTML();
+    const originalText = editor.getText();
+    console.log(firstLine);
+    // const fullText = editor.getText().replace(/\n/g, "<br>");
+    // const firstLine = originalText.split("\n")[0];
+    if (originalText.trim() !== "") {
       setFiles((prev) =>
         prev.map((file) => {
           return file.file_id === pageIdRef.current
@@ -334,12 +325,9 @@ function TextEditor() {
   useEffect(() => {
     const interval = setInterval(() => {
       let data = quillRef.current.getEditor().getContents()["ops"][0]["insert"];
-      // console.log(`[${Date.now()}] Data:`, data);
       // make sure there is a pageId before saving to database
       // so apparently only this pageId will work, probably something to do with rendering.
       if (old !== data && pageId) {
-        console.log(nodes);
-
         sendData({
           doc: data,
           id: pageId,
@@ -365,7 +353,6 @@ function TextEditor() {
   const onConnect = useCallback(
     (params) => {
       setEdges((eds) => addEdge(params, eds));
-      console.log("edge", params);
     },
     [setEdges]
   );
@@ -385,7 +372,6 @@ function TextEditor() {
 
   const getMousePosition = (event) => {
     const boundingCanvas = boardRef.current.getBoundingClientRect();
-    console.log("offset in click X", offsetXRef.current);
 
     const offsetXValue = offsetProperties[0];
     const offsetYValue = offsetProperties[1];
@@ -457,7 +443,6 @@ function TextEditor() {
       };
 
       postNodeToBackend(newNode);
-
       setAddingNode(false);
     }
   };
@@ -465,10 +450,11 @@ function TextEditor() {
   // will need to understand this eventually, also only works on backspace, so will have to add the delete button
   const onNodesDelete = useCallback(
     (deleted) => {
+      console.log("The deleted", deleted);
       const deletedId = deleted[0].id;
       axios.delete("http://localhost:5000/deleteNode", {
         data: {
-          deletedId: deletedId,
+          deleted: deleted,
         },
       });
       setEdges(
@@ -476,7 +462,6 @@ function TextEditor() {
           const incomers = getIncomers(node, nodes, edges);
           const outgoers = getOutgoers(node, nodes, edges);
           const connectedEdges = getConnectedEdges([node], edges);
-          console.log("CONNECTED", connectedEdges);
 
           // axios statement here.
           const remainingEdges = acc.filter(
@@ -498,18 +483,19 @@ function TextEditor() {
     [nodes, edges]
   );
 
-  const onEdgesDelete = (edgeToDelete) => {
+  const onEdgesDelete = (edgesToDelete) => {
+    console.log("edges yah", edgesToDelete);
+    const uniqueEdges = [...new Set(edgesToDelete)];
+    console.log("unique edges", uniqueEdges);
     axios
       .delete("http://localhost:5000/deleteEdge", {
         data: {
-          edgeToDelete: edgeToDelete[0],
+          edgesToDelete: uniqueEdges,
         },
       })
-      .then((response) => {
-        console.log("RESPONSE", response.data);
-      })
+      .then((response) => {})
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   };
 
@@ -581,6 +567,7 @@ function TextEditor() {
             maxZoom={1000}
             minZoom={0.1}
             onPaneClick={handleCanvasClick}
+            onNodeClick={handleCanvasClick}
             nodeTypes={memoizedNodes}
             ref={reactFlowRef}
             onNodesDelete={onNodesDelete}
