@@ -427,7 +427,7 @@ function TextEditor() {
     if (addingRect) {
       const newNode = {
         position: position,
-        data: { label: "", color: "black" },
+        data: { label: "", color: "#FFF" },
         type: "rectangleNode",
       };
 
@@ -437,7 +437,7 @@ function TextEditor() {
     if (addingNode) {
       const newNode = {
         position: position,
-        data: { label: "", color: "black" },
+        data: { label: "", color: "#FFF" },
         type: "fourHandleNode",
         height: 53,
       };

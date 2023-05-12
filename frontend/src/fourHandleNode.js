@@ -185,6 +185,8 @@ function FourHandleNode({ data, selected }) {
           justifyContent: "center",
           textAlign: "center",
           position: "relative",
+          paddingRight: 0,
+          paddingLeft: 5,
         }}
       >
         <Handle
@@ -220,6 +222,8 @@ function FourHandleNode({ data, selected }) {
             width: "90%",
             paddingTop: 0,
             paddingBottom: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
             border: "none",
             outline: "0px solid transparent",
             pointerEvents: "auto",
