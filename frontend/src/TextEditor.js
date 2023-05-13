@@ -54,6 +54,12 @@ function TextEditor() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
+  const modules = {
+    clipboard: {
+      matchVisual: false,
+    },
+  };
+
   const memoizedNodes = useMemo(() => nodeTypes, []);
 
   const divRefs = useRef({});
@@ -285,16 +291,18 @@ function TextEditor() {
     const contents = editor.getContents();
     console.log("Content", contents);
     const firstLine = contents.ops[0].insert.split("\n")[0];
-    const fullText = editor.getHTML();
+    // const fullText = editor.getHTML();
+    const fullText = content.replace(/<br>/gi, "");
+
+    console.log("test", content);
     const originalText = editor.getText();
-    console.log(firstLine);
-    // const fullText = editor.getText().replace(/\n/g, "<br>");
+
     // const firstLine = originalText.split("\n")[0];
     if (originalText.trim() !== "") {
       setFiles((prev) =>
         prev.map((file) => {
           return file.file_id === pageIdRef.current
-            ? { ...file, title: firstLine, body: fullText }
+            ? { ...file, title: firstLine, body: content }
             : file;
         })
       );
@@ -302,7 +310,7 @@ function TextEditor() {
       setFiles((prev) =>
         prev.map((file) => {
           return file.file_id === pageIdRef.current
-            ? { ...file, title: "Untitled", body: fullText }
+            ? { ...file, title: "Untitled", body: content }
             : file;
         })
       );
@@ -523,6 +531,7 @@ function TextEditor() {
             onChange={handleChange}
             onKeyDown={handleKeyPress}
             className="quill_editor"
+            modules={modules}
           />
         </div>
         <div

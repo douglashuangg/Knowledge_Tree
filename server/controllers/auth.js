@@ -49,7 +49,6 @@ const register = async (req, res) => {
           username: user.username,
         });
       res.status(201).json("New User created");
-      console.log("logged in");
     } else {
       res.status(403).json("Please provide a password");
     }
@@ -104,7 +103,6 @@ const login = async (req, res) => {
       .json({
         username: user.username,
       });
-    console.log("logged in");
   } catch (err) {
     res.status(500).json(err.message);
   }
@@ -112,7 +110,6 @@ const login = async (req, res) => {
 
 const logout = (req, res) => {
   res.clearCookie("access_token");
-  console.log("logged out");
   res.status(200).json("Logout successful");
 };
 

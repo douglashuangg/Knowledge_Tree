@@ -79,7 +79,7 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
     if (file) {
       pageIdRef.current = file.file_id;
       setPageId(file.file_id);
-
+      console.log("THE FILE", file);
       const editor = quill.current.getEditor();
       // await editor.setContents([{ insert: "\n" }]);
       const delta = editor.clipboard.convert(file.body);

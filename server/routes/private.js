@@ -31,7 +31,7 @@ router.get("/fetchFiles", checkAuth, async (req, res) => {
         body: decryptData(row.body),
       };
     });
-    console.log("decrypted", decryptedResult);
+    console.log("the", decryptedResult);
     res.json(decryptedResult);
   } catch (error) {
     console.error(error);

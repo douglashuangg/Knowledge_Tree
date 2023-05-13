@@ -71,7 +71,7 @@ app.use("/auth", authRoutes);
 app.use("/private", privateRoutes);
 
 app.post("/saveFile", async (req, res) => {
-  console.log("save", req.body.file);
+  // console.log("HAH", req.body);
   try {
     const existingFile = await prisma.files.findUnique({
       where: {
@@ -79,6 +79,7 @@ app.post("/saveFile", async (req, res) => {
       },
     });
     if (existingFile) {
+      console.log(req.body.file.body);
       const updatedFile = await prisma.files.update({
         where: {
           file_id: req.body.file.file_id,
@@ -140,14 +141,12 @@ app.delete("/deleteNode", async (req, res) => {
 
 app.delete("/deleteEdge", async (req, res) => {
   try {
-    console.log("Why random edges", req.body.edgesToDelete);
     for (let i = 0; i < req.body.edgesToDelete.length; i++) {
       await prisma.edges.delete({
         where: {
           id: req.body.edgesToDelete[i].id,
         },
       });
-      console.log("ID", req.body.edgesToDelete[i].id);
     }
     // await prisma.edges.delete({
     //   where: {
@@ -239,7 +238,6 @@ async function savePost(req) {
       }
     }
 
-    // console.log("hey", edgeArray);
     for (let i = 0; i < edgeArray.length; i++) {
       const existingEdge = await prisma.edges.findUnique({
         where: {
