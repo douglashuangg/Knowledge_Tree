@@ -15,21 +15,16 @@ router.get("/", checkAuth, (req, res) => {
 // this has to be here because it needs to get the user id
 router.get("/fetchFiles", checkAuth, async (req, res) => {
   try {
-    // database connection
-    const client = new Client({
-      user: process.env.PGUSER,
-      host: process.env.PGHOST,
-      database: process.env.PGDATABASE,
-      password: process.env.PGPASSWORD,
-      port: process.env.PGPORT,
+    const files = await prisma.files.findMany({
+      where: {
+        user_id: req.user.id,
+      },
+      orderBy: {
+        file_id: "asc",
+      },
     });
-    await client.connect();
-    const result = await client.query(
-      "SELECT * from files WHERE user_id = $1 order by FILE_ID ASC",
-      [req.user.id]
-    );
 
-    const decryptedResult = result.rows.map((row) => {
+    const decryptedResult = files.map((row) => {
       return {
         ...row,
         title: decryptData(row.title),
@@ -37,7 +32,6 @@ router.get("/fetchFiles", checkAuth, async (req, res) => {
       };
     });
     console.log("decrypted", decryptedResult);
-    await client.end();
     res.json(decryptedResult);
   } catch (error) {
     console.error(error);
