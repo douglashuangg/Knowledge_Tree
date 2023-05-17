@@ -55,7 +55,7 @@ const prisma = new PrismaClient();
 app.use(
   cors({
     credentials: true,
-    origin: process.env.REACT_APP_ENDPOINT,
+    origin: process.env.PROD_ENDPOINT,
   })
 );
 
