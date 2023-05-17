@@ -105,7 +105,9 @@ function TextEditor() {
     // redrawCanvas();
   }, []);
 
-  const fetchDataUrl = "http://localhost:5000/fetchFileData";
+  // const fetchDataUrl = "http://localhost:5000/fetchFileData";
+
+  const fetchDataUrl = `${mainUrl}/fetchFileData`;
 
   useEffect(() => {
     if (pageIdRef.current) {
@@ -150,7 +152,8 @@ function TextEditor() {
     }
   }, [pageIdRef.current]);
 
-  const url = "http://localhost:5000/savePost";
+  // const url = "http://localhost:5000/savePost";
+  const url = `${mainUrl}/savePost`;
 
   function sendData(data) {
     axios.post(url, data).then((response) => {});
@@ -276,7 +279,7 @@ function TextEditor() {
       file.body = content;
 
       axios
-        .post("http://localhost:5000/saveFile", {
+        .post(`${mainUrl}/saveFile`, {
           file: file,
         })
         .then((response) => {})
@@ -289,12 +292,10 @@ function TextEditor() {
 
   const handleChange = (content, delta, source, editor) => {
     const contents = editor.getContents();
-    console.log("Content", contents);
     const firstLine = contents.ops[0].insert.split("\n")[0];
     // const fullText = editor.getHTML();
     const fullText = content.replace(/<br>/gi, "");
 
-    console.log("test", content);
     const originalText = editor.getText();
 
     // const firstLine = originalText.split("\n")[0];
@@ -310,7 +311,7 @@ function TextEditor() {
       setFiles((prev) =>
         prev.map((file) => {
           return file.file_id === pageIdRef.current
-            ? { ...file, title: "Untitled", body: content }
+            ? { ...file, title: "", body: content }
             : file;
         })
       );
@@ -402,7 +403,7 @@ function TextEditor() {
 
   function postNodeToBackend(newNode) {
     axios
-      .post("http://localhost:5000/saveNode", {
+      .post(`${mainUrl}/saveNode`, {
         pageId: pageIdRef.current,
         newNode: newNode,
       })
@@ -458,9 +459,8 @@ function TextEditor() {
   // will need to understand this eventually, also only works on backspace, so will have to add the delete button
   const onNodesDelete = useCallback(
     (deleted) => {
-      console.log("The deleted", deleted);
       const deletedId = deleted[0].id;
-      axios.delete("http://localhost:5000/deleteNode", {
+      axios.delete(`${mainUrl}/deleteNode`, {
         data: {
           deleted: deleted,
         },
@@ -492,11 +492,9 @@ function TextEditor() {
   );
 
   const onEdgesDelete = (edgesToDelete) => {
-    console.log("edges yah", edgesToDelete);
     const uniqueEdges = [...new Set(edgesToDelete)];
-    console.log("unique edges", uniqueEdges);
     axios
-      .delete("http://localhost:5000/deleteEdge", {
+      .delete(`${mainUrl}/deleteEdge`, {
         data: {
           edgesToDelete: uniqueEdges,
         },

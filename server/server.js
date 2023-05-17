@@ -13,7 +13,7 @@ const { encryptData, decryptData } = require("./utils/encryption.js");
 dotenv.config();
 
 const hostname = "127.0.0.1";
-const port = 5000;
+const port = process.env.port || 5000;
 
 const app = express();
 
@@ -55,7 +55,7 @@ const prisma = new PrismaClient();
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: process.env.REACT_APP_ENDPOINT,
   })
 );
 
@@ -70,8 +70,11 @@ app.use(bodyParser.json());
 app.use("/auth", authRoutes);
 app.use("/private", privateRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 app.post("/saveFile", async (req, res) => {
-  // console.log("HAH", req.body);
   try {
     const existingFile = await prisma.files.findUnique({
       where: {
@@ -79,7 +82,6 @@ app.post("/saveFile", async (req, res) => {
       },
     });
     if (existingFile) {
-      console.log(req.body.file.body);
       const updatedFile = await prisma.files.update({
         where: {
           file_id: req.body.file.file_id,
@@ -274,6 +276,6 @@ async function savePost(req) {
   }
 }
 
-app.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+app.listen(port, () => {
+  console.log(`Server running at ${port}`);
 });

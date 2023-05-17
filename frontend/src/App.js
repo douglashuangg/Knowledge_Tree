@@ -7,12 +7,15 @@ import axios from "axios";
 import "./app.css";
 
 function App() {
-  const url = "http://localhost:5000/private";
+  const mainUrl = process.env.REACT_APP_ENDPOINT;
+  const url = `${mainUrl}/private`;
+  // const url = "http://localhost:5000/private";
   const [loggedIn, setLoggedIn] = useState();
   const [loading, setLoading] = useState(true);
 
   function handleLogout() {
-    const logoutUrl = "http://localhost:5000/auth/logout";
+    // const logoutUrl = "http://localhost:5000/auth/logout";
+    const logoutUrl = `${mainUrl}/auth/logout`;
     axios.get(logoutUrl, { withCredentials: true }).then((response) => {
       setLoggedIn(false);
     });

@@ -5,6 +5,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
+  const mainUrl = process.env.REACT_APP_ENDPOINT;
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
   const [isSideBarVisible, setIsSideBarVisible] = useState(true);
@@ -13,7 +14,8 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
 
   const indexRef = useRef(0);
 
-  const fetchFilesUrl = "http://localhost:5000/private/fetchFiles";
+  // const fetchFilesUrl = "http://localhost:5000/private/fetchFiles";
+  const fetchFilesUrl = `${mainUrl}/private/fetchFiles`;
   useEffect(() => {
     axios
       .get(fetchFilesUrl, {
@@ -34,11 +36,11 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
 
   const addNewFile = () => {
     const newFile = {
-      title: "Untitled",
+      title: "",
       body: "",
     };
     axios
-      .post("http://localhost:5000/private/addFile", newFile, {
+      .post(`${mainUrl}/private/addFile`, newFile, {
         withCredentials: true,
       })
       .then((response) => {
@@ -60,7 +62,7 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
       const updatedItems = files.filter((file) => file.file_id !== id);
       axios
         .post(
-          "http://localhost:5000/private/deleteFile",
+          `${mainUrl}/private/deleteFile`,
           { id },
           { withCredentials: true }
         )
@@ -79,7 +81,6 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
     if (file) {
       pageIdRef.current = file.file_id;
       setPageId(file.file_id);
-      console.log("THE FILE", file);
       const editor = quill.current.getEditor();
       // await editor.setContents([{ insert: "\n" }]);
       const delta = editor.clipboard.convert(file.body);
@@ -168,7 +169,7 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
                   }}
                 >
                   <div className="file_element">
-                    <p>{file.title}</p>
+                    <p>{file.title === "" ? "Untitled" : file.title}</p>
                   </div>
 
                   <div

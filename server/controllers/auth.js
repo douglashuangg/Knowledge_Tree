@@ -1,36 +1,32 @@
 const bcrypt = require("bcryptjs");
-const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const session = require("express-session");
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 
 const register = async (req, res) => {
   try {
-    const pool = new Pool({
-      user: process.env.PGUSER,
-      host: process.env.PGHOST,
-      database: process.env.PGDATABASE,
-      password: process.env.PGPASSWORD,
-      port: process.env.PGPORT,
-    });
     if (req.body.password) {
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(req.body.password, salt);
 
-      // add username and hashed password to database.
-      await pool.query(
-        "INSERT INTO users (username, password, email) VALUES ($1, $2, $3)",
-        [req.body.username, hashedPassword, req.body.username]
-      );
+      await prisma.users.create({
+        data: {
+          username: req.body.username,
+          password: hashedPassword,
+          email: req.body.username,
+        },
+      });
 
-      const { rows } = await pool.query(
-        "SELECT * FROM users WHERE username = $1",
-        [req.body.username]
-      );
+      const users = await prisma.users.findMany({
+        where: {
+          username: req.body.username,
+        },
+      });
 
-      pool.end();
-
-      const user = rows[0];
+      const user = users[0];
       const payload = {
         id: user.user_id,
       };
@@ -48,7 +44,7 @@ const register = async (req, res) => {
         .json({
           username: user.username,
         });
-      res.status(201).json("New User created");
+      // res.status(201).json("New User created");
     } else {
       res.status(403).json("Please provide a password");
     }
@@ -60,21 +56,13 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     // find username
-    const pool = new Pool({
-      user: process.env.PGUSER,
-      host: process.env.PGHOST,
-      database: process.env.PGDATABASE,
-      password: process.env.PGPASSWORD,
-      port: process.env.PGPORT,
+    const users = await prisma.users.findMany({
+      where: {
+        username: req.body.username,
+      },
     });
-    const { rows } = await pool.query(
-      "SELECT * FROM users WHERE username = $1",
-      [req.body.username]
-    );
 
-    pool.end();
-
-    const user = rows[0];
+    const user = users[0];
 
     if (!user) {
       // automatically thought it returned

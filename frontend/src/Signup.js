@@ -5,12 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 function Login() {
+  const mainUrl = process.env.REACT_APP_ENDPOINT;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const url = "http://localhost:5000/auth/register";
-
+  // const url = "http://localhost:5000/auth/register";
+  const url = `${mainUrl}/auth/register`;
   const handleSubmit = async (event) => {
     event.preventDefault();
     await axios

@@ -9,7 +9,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const url = "http://localhost:5000/auth/login";
+  const url = `${mainUrl}/auth/login`;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
