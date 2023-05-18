@@ -31,7 +31,7 @@ function Login() {
   };
   return (
     <>
-      <Link to={`/`}>Redwood</Link>
+      <Link to={`/`}>Mesh</Link>
       <div className="login_title">
         <h1 className="text-7xl pt-8">Sign up</h1>
       </div>
