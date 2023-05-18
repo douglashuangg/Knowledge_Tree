@@ -12,6 +12,7 @@ function Login() {
   const url = `${mainUrl}/auth/login`;
 
   const handleSubmit = async (event) => {
+    console.log("the url", url);
     event.preventDefault();
     await axios
       .post(
