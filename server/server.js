@@ -55,7 +55,7 @@ const prisma = new PrismaClient();
 app.use(
   cors({
     credentials: true,
-    origin: process.env.PROD_ENDPOINT,
+    origin: "https://www.getmesh.ca/",
   })
 );
 

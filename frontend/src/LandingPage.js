@@ -5,12 +5,12 @@ import { Link } from "react-router-dom";
 function LandingPage() {
   return (
     <div className="landing_container">
-      <h1>Redwood</h1>
+      <h1>Mesh</h1>
       <div className="landing_centre">
         <h1 className="title">Connecting all the things you learn together</h1>
         <p className="description">
           Tired of learning tidbits of information and never seeing the big
-          picture? Redwood is the mindmapping tool for education.
+          picture? Mesh is the mindmapping tool for education.
         </p>
         <Link to={`/signup`}>
           <button className="button_getStarted">Get Started</button>
@@ -20,7 +20,7 @@ function LandingPage() {
       <footer>
         <div className="footer_container">
           <div className="footer-content">
-            <p>&copy; 2023 Redwood</p>
+            <p>&copy; 2023 Mesh</p>
             <ul className="footer-links">
               <li>
                 <a className="footer_link" href="#">
