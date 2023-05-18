@@ -8,7 +8,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
+  const mainUrl = process.env.REACT_APP_ENDPOINT;
   const url = `${mainUrl}/auth/login`;
 
   const handleSubmit = async (event) => {

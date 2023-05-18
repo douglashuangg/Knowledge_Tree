@@ -33,7 +33,7 @@ const zoomSelector = (s) => {
 
 function TextEditor() {
   let offsetProperties = useStore(zoomSelector);
-
+  const mainUrl = process.env.REACT_APP_ENDPOINT;
   const quillRef = useRef(null);
   const canvasRef = useRef(null);
   const reactFlowRef = useRef(null);
