@@ -449,6 +449,7 @@ function TextEditor() {
         data: { label: "", color: "#FFF" },
         type: "fourHandleNode",
         height: 53,
+        width: 120,
       };
 
       postNodeToBackend(newNode);
