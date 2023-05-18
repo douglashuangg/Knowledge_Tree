@@ -21,6 +21,15 @@ function App() {
     });
   }
   useEffect(() => {
+    console.log("calling");
+    axios
+      .get(mainUrl)
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     axios
       .get(url, {
         withCredentials: true,
