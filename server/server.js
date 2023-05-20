@@ -240,7 +240,6 @@ async function savePost(req) {
         });
       }
     }
-
     for (let i = 0; i < edgeArray.length; i++) {
       const existingEdge = await prisma.edges.findUnique({
         where: {
