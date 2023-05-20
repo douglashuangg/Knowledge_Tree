@@ -9,7 +9,6 @@ import "./app.css";
 function App() {
   const mainUrl = process.env.REACT_APP_ENDPOINT;
   const url = `${mainUrl}/private`;
-  // const url = "http://localhost:5000/private";
   const [loggedIn, setLoggedIn] = useState();
   const [loading, setLoading] = useState(true);
 
