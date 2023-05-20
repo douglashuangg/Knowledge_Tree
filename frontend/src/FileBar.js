@@ -14,7 +14,6 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
 
   const indexRef = useRef(0);
 
-  // const fetchFilesUrl = "http://localhost:5000/private/fetchFiles";
   const fetchFilesUrl = `${mainUrl}/private/fetchFiles`;
   useEffect(() => {
     axios
