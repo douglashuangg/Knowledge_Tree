@@ -1,12 +1,9 @@
-name: Build
+name: Branch Build
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - '*'
 
 jobs:
   build:
