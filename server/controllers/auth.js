@@ -40,6 +40,7 @@ const register = async (req, res) => {
         .cookie("access_token", token, {
           httpOnly: true,
           secure: true,
+          sameSite: "None",
         })
         .status(200)
         .json({
@@ -88,6 +89,7 @@ const login = async (req, res) => {
       .cookie("access_token", token, {
         httpOnly: true,
         secure: true,
+        sameSite: "None",
       })
       .status(200)
       .json({
@@ -99,7 +101,11 @@ const login = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  res.clearCookie("access_token");
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
   res.status(200).json("Logout successful");
 };
 

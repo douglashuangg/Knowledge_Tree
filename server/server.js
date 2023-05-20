@@ -55,7 +55,8 @@ const prisma = new PrismaClient();
 app.use(
   cors({
     credentials: true,
-    origin: [process.env.ALLOW_ORIGIN, "getmesh.ca", "https://www.getmesh.ca"],
+    origin: "https://www.getmesh.ca",
+    methods: ["GET", "POST", "PUT", "DELETE"], // Add DELETE method here
   })
 );
 
@@ -116,7 +117,7 @@ app.post("/saveNode", async (req, res) => {
     res.status(200).json(createdNode);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating node" });
+    res.status(500).json({ message: "Error creating node", error: error });
   }
 });
 
