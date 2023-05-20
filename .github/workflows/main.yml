@@ -2,6 +2,8 @@ name: Branch Build
 
 on:
   push:
+    branches:
+      - dhuang/*
     branches-ignore:
       - main
 
