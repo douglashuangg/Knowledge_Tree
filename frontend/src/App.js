@@ -14,7 +14,6 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   function handleLogout() {
-    // const logoutUrl = "http://localhost:5000/auth/logout";
     const logoutUrl = `${mainUrl}/auth/logout`;
     axios.get(logoutUrl, { withCredentials: true }).then((response) => {
       setLoggedIn(false);
