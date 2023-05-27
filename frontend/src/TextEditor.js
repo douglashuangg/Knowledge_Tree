@@ -584,6 +584,7 @@ function TextEditor() {
             ref={reactFlowRef}
             onNodesDelete={onNodesDelete}
             onEdgesDelete={onEdgesDelete}
+            connectionMode="loose"
           />
         </div>
       </div>
