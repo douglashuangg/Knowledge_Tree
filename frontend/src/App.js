@@ -1,5 +1,5 @@
 import TextEditor from "./TextEditor";
-import { Outlet, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import React, { useEffect, useState } from "react";
 import { ReactFlowProvider } from "reactflow";

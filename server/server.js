@@ -55,7 +55,7 @@ const prisma = new PrismaClient();
 app.use(
   cors({
     credentials: true,
-    origin: "https://www.getmesh.ca",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST", "PUT", "DELETE"], // Add DELETE method here
   })
 );
