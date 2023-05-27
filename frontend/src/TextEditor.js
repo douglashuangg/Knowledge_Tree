@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import ReactQuill from "react-quill";
 import axios from "axios";
 import "react-quill/dist/quill.snow.css";
+import "reactflow/dist/style.css";
 import "./textEditor.css";
 import FileBar from "./FileBar";
 import ReactFlow, {
@@ -13,7 +14,6 @@ import ReactFlow, {
   getOutgoers,
   getConnectedEdges,
 } from "reactflow";
-import "reactflow/dist/style.css";
 import fourHandleNode from "./fourHandleNode";
 import imageNode from "./imageNode";
 import rectangleNode from "./rectangleNode";
@@ -46,6 +46,8 @@ function TextEditor() {
   const [addingRect, setAddingRect] = useState(false);
   const [files, setFiles] = useState([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const placeholder = "Untitled Document";
 
   let filesRef = useRef([]);
   let pageIdRef = useRef();
@@ -293,6 +295,7 @@ function TextEditor() {
   const handleChange = (content, delta, source, editor) => {
     const contents = editor.getContents();
     const firstLine = contents.ops[0].insert.split("\n")[0];
+
     // const fullText = editor.getHTML();
     const fullText = content.replace(/<br>/gi, "");
 
@@ -527,6 +530,7 @@ function TextEditor() {
           <ReactQuill
             ref={quillRef}
             theme="snow"
+            placeholder={placeholder}
             onChange={handleChange}
             onKeyDown={handleKeyPress}
             className="quill_editor"
