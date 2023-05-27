@@ -1,5 +1,4 @@
-import { useState, useCallback } from "react";
-import { Handle, Position, NodeResizer, NodeResizeControl } from "reactflow";
+import { Handle, Position, NodeResizer } from "reactflow";
 import "./imageNode.css";
 
 function ImageNode({ data, selected }) {

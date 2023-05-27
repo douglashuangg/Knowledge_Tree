@@ -190,7 +190,7 @@ function FourHandleNode({ data, selected }) {
         }}
       >
         <Handle
-          type="source"
+          type="any"
           position={Position.Top}
           style={{
             background: color === "#FFF" ? "black" : color,
@@ -199,19 +199,19 @@ function FourHandleNode({ data, selected }) {
           id="top"
         />
         <Handle
-          type="source"
+          type="any"
           position={Position.Right}
           style={{ background: color === "#FFF" ? "black" : color }}
           id="right"
         />
         <Handle
-          type="target"
+          type="any"
           position={Position.Bottom}
           style={{ background: color === "#FFF" ? "black" : color, left: "10" }}
           id="bottom"
         />
         <Handle
-          type="target"
+          type="any"
           position={Position.Left}
           style={{ background: color === "#FFF" ? "black" : color }}
           id="left"
