@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Handle, Position } from "reactflow";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import "./fourHandleNode.css";
 
 function FourHandleNode({ data, selected }) {
@@ -118,9 +120,14 @@ function FourHandleNode({ data, selected }) {
                 height: 25,
                 width: 25,
                 cursor: "pointer",
+                border: "1px solid #bababa",
               }}
               onClick={toggleColorSelector}
             ></div>
+            {/* <OpenInNewIcon className="menuOption_openNewPage" />
+            <div className="explainMenuOption_openNewPage">Open As Page</div>
+            <EditNoteIcon className="menuOption_addNote" />
+            <div className="explainMenuOption_addNote">Add Note</div> */}
           </div>
           {showColorMenu && selected ? (
             <div className="div_colorOptionMenu">

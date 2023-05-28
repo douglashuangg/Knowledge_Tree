@@ -9,9 +9,7 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
   const [isSideBarVisible, setIsSideBarVisible] = useState(true);
-
   const buttonContainerRef = useRef([]);
-
   const indexRef = useRef(0);
 
   const fetchFilesUrl = `${mainUrl}/private/fetchFiles`;

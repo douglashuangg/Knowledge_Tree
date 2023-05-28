@@ -74,3 +74,11 @@ footer {
 .footer_link {
   color: white;
 }
+
+.beta {
+  background-color: #f1f3fd;
+  padding: 0.3rem;
+  color: rgb(35, 35, 223);
+  font-weight: 600;
+  margin-left: 0.1rem;
+}

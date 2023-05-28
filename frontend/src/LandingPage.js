@@ -5,7 +5,10 @@ import { Link } from "react-router-dom";
 function LandingPage() {
   return (
     <div className="landing_container">
-      <h1>Mesh</h1>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <h1>Mesh</h1>
+        <div className="beta">BETA</div>
+      </div>
       <div className="landing_centre">
         <h1 className="title">Connecting all the things you learn together</h1>
         <p className="description">

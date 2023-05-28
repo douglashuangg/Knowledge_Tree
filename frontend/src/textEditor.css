@@ -22,7 +22,6 @@ body {
   display: flex;
   align-items: center;
   flex: 1;
-  /* width: 100%; */
   border-style: solid;
   border-width: 1px;
   overflow: hidden;
@@ -112,4 +111,14 @@ body {
   background-color: rgb(247, 247, 247);
   border-radius: 0.4rem;
   height: 10rem;
+}
+
+.textarea_openArrow:hover {
+  background-color: rgb(240, 240, 240);
+  border-radius: 0.4rem;
+}
+
+.textarea_closeArrow:hover {
+  background-color: rgb(240, 240, 240);
+  border-radius: 0.4rem;
 }

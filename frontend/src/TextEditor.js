@@ -19,6 +19,8 @@ import imageNode from "./imageNode";
 import rectangleNode from "./rectangleNode";
 import CropSquareIcon from "@mui/icons-material/CropSquare";
 import RectangleIcon from "@mui/icons-material/Rectangle";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import debounce from "lodash/debounce";
 
 const nodeTypes = {
@@ -46,7 +48,7 @@ function TextEditor() {
   const [addingRect, setAddingRect] = useState(false);
   const [files, setFiles] = useState([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
+  const [isTextAreaOpen, setTextAreaOpen] = useState(true);
   const placeholder = "Untitled Document";
 
   let filesRef = useRef([]);
@@ -526,7 +528,38 @@ function TextEditor() {
         className="parent-div"
         style={{ display: pageIdRef.current ? null : "none" }}
       >
-        <div className="text-editor">
+        <KeyboardDoubleArrowRightIcon
+          style={{
+            position: "absolute",
+            fontSize: "2rem",
+            // right: "2rem",
+            zIndex: 10,
+            cursor: "pointer",
+            top: "1.05rem",
+            marginLeft: "0.3rem",
+            display: isTextAreaOpen ? "none" : null,
+          }}
+          className="textarea_openArrow"
+          onClick={() => setTextAreaOpen(!isTextAreaOpen)}
+        />
+        <div
+          className="text-editor"
+          style={{
+            display: isTextAreaOpen ? "block" : "none",
+            minWidth: "25rem",
+          }}
+        >
+          <MenuOpenIcon
+            style={{
+              position: "absolute",
+              right: "0.1rem",
+              fontSize: "2rem",
+              marginTop: "0.3rem",
+              cursor: "pointer",
+            }}
+            className="textarea_closeArrow"
+            onClick={() => setTextAreaOpen(!isTextAreaOpen)}
+          />
           <ReactQuill
             ref={quillRef}
             theme="snow"
@@ -585,6 +618,7 @@ function TextEditor() {
             onNodesDelete={onNodesDelete}
             onEdgesDelete={onEdgesDelete}
             connectionMode="loose"
+            fitView="true"
           />
         </div>
       </div>
