@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x", "rhel-openssl-1.0.x",  "windows",  "linux-musl", "darwin"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "rhel-openssl-1.0.x", "windows", "linux-musl", "darwin"]
 }
 
 datasource db {
@@ -9,24 +9,26 @@ datasource db {
 }
 
 model edges {
-  id            String     @id
+  id            String  @id
   source        String?
   target        String?
   source_handle String?
   target_handle String?
   file_id       Int
-  files         files? @relation(fields: [file_id], references: [file_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_id")
+  files         files   @relation(fields: [file_id], references: [file_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_id")
 }
 
 model files {
-  file_id    Int          @id @default(autoincrement())
-  title      String       @db.VarChar(255)
-  body       String?
-  user_id    Int?
-  users      users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
-  nodes nodes[]
-  edges edges[]
+  file_id      Int       @id @default(autoincrement())
+  title        String
+  body         String?
+  user_id      Int?
   lastAccessed DateTime?
+  ispinned     Boolean?  @default(false)
+  isnote       Boolean?  @default(false)
+  edges        edges[]
+  users        users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  nodes        nodes[]
 }
 
 model users {
@@ -38,15 +40,15 @@ model users {
 }
 
 model nodes {
-  node_id       Int       @id @default(autoincrement())
-  location      Decimal[] @db.Decimal
-  color         String?   @db.VarChar(7)
-  file_id       Int?
-  x             Decimal?  @db.Decimal
-  y             Decimal?  @db.Decimal
-  width         Decimal?  @db.Decimal
-  height        Decimal?  @db.Decimal
-  text          String?
-  files         files?    @relation(fields: [file_id], references: [file_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_id")
-  type          String?
+  node_id  Int       @id @default(autoincrement())
+  location Decimal[] @db.Decimal
+  color    String?   @db.VarChar(7)
+  file_id  Int?
+  x        Decimal?  @db.Decimal
+  y        Decimal?  @db.Decimal
+  width    Decimal?  @db.Decimal
+  height   Decimal?  @db.Decimal
+  text     String?
+  type     String?
+  files    files?    @relation(fields: [file_id], references: [file_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_file_id")
 }

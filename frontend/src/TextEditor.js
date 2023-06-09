@@ -20,6 +20,8 @@ import rectangleNode from "./rectangleNode";
 import CropSquareIcon from "@mui/icons-material/CropSquare";
 import RectangleIcon from "@mui/icons-material/Rectangle";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import StarIcon from "@mui/icons-material/Star";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import debounce from "lodash/debounce";
 
@@ -49,6 +51,7 @@ function TextEditor() {
   const [files, setFiles] = useState([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isTextAreaOpen, setTextAreaOpen] = useState(true);
+  const [isPinned, setIsPinned] = useState(false);
   const placeholder = "Untitled Document";
 
   let filesRef = useRef([]);
@@ -511,6 +514,30 @@ function TextEditor() {
       });
   };
 
+  const handleSetPin = () => {
+    setIsPinned(!isPinned);
+    setFiles((prev) =>
+      prev.map((file) => {
+        return file.file_id === pageIdRef.current
+          ? { ...file, ispinned: !isPinned }
+          : file;
+      })
+    );
+    const currentFile = files.find(
+      (file) => file.file_id === pageIdRef.current
+    );
+    currentFile.ispinned = !isPinned;
+    console.log(currentFile);
+    axios
+      .post(`${mainUrl}/saveFile`, {
+        file: currentFile,
+      })
+      .then((response) => {})
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   return (
     <>
       <FileBar
@@ -520,7 +547,11 @@ function TextEditor() {
         setFiles={setFiles}
         pageIdRef={pageIdRef}
         filesRef={filesRef}
+        setIsPinned={setIsPinned}
       />
+      <div className="star_button" onClick={handleSetPin}>
+        {isPinned ? <StarIcon /> : <StarBorderIcon />}
+      </div>
       <h1 style={{ margin: 0, display: pageIdRef.current ? "none" : null }}>
         Please add a file to begin
       </h1>

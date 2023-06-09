@@ -4,7 +4,15 @@ import "./fileBar.css";
 import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
+function FileBar({
+  quill,
+  files,
+  setFiles,
+  pageIdRef,
+  filesRef,
+  setPageId,
+  setIsPinned,
+}) {
   const mainUrl = process.env.REACT_APP_ENDPOINT;
   const [popUpMenu, setPopUpMenu] = useState(false);
   const [thisFile, setThisFile] = useState();
@@ -20,6 +28,7 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
       })
       .then((response) => {
         filesRef.current = response.data;
+        console.log(response.data);
         setFiles(response.data);
         // currently setting the first file to be the default page
         setPageId(response.data[0].file_id);
@@ -78,6 +87,8 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
     if (file) {
       pageIdRef.current = file.file_id;
       setPageId(file.file_id);
+      console.log("this file", file.ispinned);
+      setIsPinned(file.ispinned);
       const editor = quill.current.getEditor();
       // await editor.setContents([{ insert: "\n" }]);
       const delta = editor.clipboard.convert(file.body);
@@ -151,8 +162,49 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
             <MenuIcon style={{ fontSize: "2rem" }} />
           </button>
           <h2>Files</h2>
-
           <div className="div_scrollable">
+            {files.some((file) => file.ispinned) && (
+              <div style={{ marginBottom: "2rem" }}>
+                <div className="filebar_headers">Pinned</div>
+                {files.map((file, index) => {
+                  if (!file.ispinned) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      className="file_group"
+                      onClick={() => renderBody(file)}
+                      style={{
+                        backgroundColor:
+                          file.file_id === pageIdRef.current
+                            ? "#3b3f50"
+                            : "#1e212a",
+                      }}
+                    >
+                      <div className="file_element">
+                        <p>{file.title === "" ? "Untitled" : file.title}</p>
+                      </div>
+
+                      <div
+                        className="button_container"
+                        ref={(ref) => (buttonContainerRef.current[index] = ref)}
+                      >
+                        <button
+                          className="button_file_menu"
+                          onClick={() => handleDelete(file.file_id)}
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </div>
+                      {popUpMenu &&
+                        file.file_id == thisFile &&
+                        PopUpMenu(file.file_id)}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="filebar_headers">Files</div>
             {files.map((file, index) => {
               return (
                 <div
@@ -196,7 +248,7 @@ function FileBar({ quill, files, setFiles, pageIdRef, filesRef, setPageId }) {
             })}
             <div className="file_element--new">
               <button onClick={addNewFile} className="button_add_map">
-                + New Map
+                + New File
               </button>
             </div>
           </div>

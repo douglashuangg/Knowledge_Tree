@@ -122,3 +122,18 @@ body {
   background-color: rgb(240, 240, 240);
   border-radius: 0.4rem;
 }
+
+.star_button {
+  position: absolute;
+  top: 0.2rem;
+  right: 17rem;
+  z-index: 1;
+  padding: 0.5rem;
+  padding-top: 0.7rem;
+  border-radius: 0.4rem;
+}
+
+.star_button:hover {
+  cursor: pointer;
+  background-color: rgb(212, 212, 212);
+}

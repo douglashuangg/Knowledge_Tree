@@ -90,6 +90,7 @@ app.post("/saveFile", async (req, res) => {
         data: {
           title: encryptData(req.body.file.title),
           body: encryptData(req.body.file.body),
+          ispinned: req.body.file.ispinned,
           lastAccessed: new Date(),
         },
       });
